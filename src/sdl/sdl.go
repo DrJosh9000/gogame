@@ -31,6 +31,11 @@ func Err() string {
 	return C.GoString(C.SDL_GetError())
 }
 
+type Color struct {
+	red, green, blue, alpha byte
+}
+var BlackColor = Color{ 0x00, 0x00, 0x00, 0xff }
+
 type Renderer struct {
 	renderer unsafe.Pointer
 }
@@ -50,8 +55,8 @@ func (r *Renderer) Destroy() {
 	}
 }
 
-func (r *Renderer) SetDrawColor(red, green, blue, alpha byte) {
-	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(red), C.Uint8(green), C.Uint8(blue), C.Uint8(alpha));
+func (r *Renderer) SetDrawColor(c Color) {
+	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.red), C.Uint8(c.green), C.Uint8(c.blue), C.Uint8(c.alpha));
 }
 
 type Surface struct {
@@ -124,7 +129,7 @@ func NewContext(title string, width, height int) (*Context, error) {
 		Surface: w.Surface(),
 		Renderer: w.Renderer(),
 	}
-	ctx.Renderer.SetDrawColor(0x00, 0x00, 0x00, 0xff)
+	ctx.Renderer.SetDrawColor(BlackColor)
 	return ctx, nil
 }
 
