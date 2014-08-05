@@ -31,7 +31,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -88,7 +87,7 @@ func HandleEvents(handler func(e interface{}) error) error {
 }
 
 // NewContext creates a Context referring to a new window with a given title and
-// size.
+// size. Don't forget to Close the context when done.
 func NewContext(title string, width, height int) (*Context, error) {
 	
 	if errno := C.SDL_Init(C.kInitVideo); errno < 0 {
@@ -114,17 +113,17 @@ func NewContext(title string, width, height int) (*Context, error) {
 		primarySurface: unsafe.Pointer(s),
 		renderer: unsafe.Pointer(r),
 	}
-	runtime.SetFinalizer(ctx, func(x interface{}) {
-		c := x.(*Context)
-		if c.renderer != nil {
-			C.SDL_DestroyRenderer((*C.SDL_Renderer)(c.renderer))
-		}
-		if c.window != nil {
-			C.SDL_DestroyWindow((*C.SDL_Window)(c.window))
-		}
-		C.SDL_Quit()
-	})
 	return ctx, nil
+}
+
+func (c *Context) Close() {
+	if c.renderer != nil {
+		C.SDL_DestroyRenderer((*C.SDL_Renderer)(c.renderer))
+	}
+	if c.window != nil {
+		C.SDL_DestroyWindow((*C.SDL_Window)(c.window))
+	}
+	C.SDL_Quit()
 }
 
 func (c *Context) Render() {

@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer ctx.Close()
 
 	quit := 	errors.New("quitting")
 	for {
