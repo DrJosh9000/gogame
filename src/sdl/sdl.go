@@ -14,18 +14,6 @@ const char* kHintRenderScaleQuality = SDL_HINT_RENDER_SCALE_QUALITY;
 const int kRendererAccelerated = SDL_RENDERER_ACCELERATED;
 const int kWindowPosUndefined = SDL_WINDOWPOS_UNDEFINED;
 const int kWindowShown = SDL_WINDOW_SHOWN;
-
-const int kQuit = SDL_QUIT;
-const int kKeyDown = SDL_KEYDOWN;
-const int kKeyUp = SDL_KEYUP;
-
-Uint32 getType(SDL_Event *ev) {
-	return ev->type;
-}
-
-SDL_Keycode getKeyCode(SDL_Event *ev) {
-	return ev->key.keysym.sym;
-}
 */
 import "C"
 
@@ -33,12 +21,6 @@ import (
 	"fmt"
 	"unsafe"
 )
-
-type Context struct {
-	window unsafe.Pointer
-	renderer unsafe.Pointer
-	primarySurface unsafe.Pointer
-}
 
 func Delay(delay uint32) {
 	C.SDL_Delay(C.Uint32(delay))
@@ -49,41 +31,75 @@ func Err() string {
 	return C.GoString(C.SDL_GetError())
 }
 
-
-type KeyEventType int
-const (
-	KeyDown KeyEventType = iota
-	KeyUp
-)
-type QuitEvent int
-type KeyEvent struct {
-	Type KeyEventType
-	KeyCode uint32
+type Renderer struct {
+	renderer unsafe.Pointer
 }
 
-func HandleEvents(handler func(e interface{}) error) error {
-	var ev C.SDL_Event
-	for C.SDL_PollEvent(&ev) != 0 {
-		var err error
-		switch C.getType(&ev) {
-		case C.kQuit:
-			err = handler(QuitEvent(0))
-		case C.kKeyDown:
-			err = handler(KeyEvent{
-				Type: KeyDown,
-				KeyCode: uint32(C.getKeyCode(&ev)),
-			})
-		case C.kKeyUp:
-			err = handler(KeyEvent{
-				Type: KeyUp,
-				KeyCode: uint32(C.getKeyCode(&ev)),
-			})
-		}
-		if err != nil {
-			return err
-		}
+func (r *Renderer) r() *C.SDL_Renderer {
+	return (*C.SDL_Renderer)(r.renderer)
+}
+
+func (r *Renderer) Render() {
+	C.SDL_RenderClear(r.r())
+	C.SDL_RenderPresent(r.r())
+}
+
+func (r *Renderer) Destroy() {
+	if r.r() != nil {
+		C.SDL_DestroyRenderer(r.r())
 	}
-	return nil
+}
+
+func (r *Renderer) SetDrawColor(red, green, blue, alpha byte) {
+	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(red), C.Uint8(green), C.Uint8(blue), C.Uint8(alpha));
+}
+
+type Surface struct {
+	surface unsafe.Pointer
+}
+
+func (s *Surface) s() *C.SDL_Surface {
+	return (*C.SDL_Surface)(s.surface)
+}
+
+type Window struct {
+	window unsafe.Pointer
+}
+
+func NewWindow(title string, width, height int) (*Window, error) {
+	winTitle := C.CString(title)
+	defer C.free(unsafe.Pointer(winTitle))
+	w := C.SDL_CreateWindow(winTitle, C.kWindowPosUndefined, C.kWindowPosUndefined, C.int(width), C.int(height), C.kWindowShown)
+	if w == nil {
+		return nil, fmt.Errorf("unable to create SDL Window: %s", Err());
+	}
+	return &Window{ unsafe.Pointer(w) }, nil
+}
+
+func (w *Window) w() *C.SDL_Window {
+	return (*C.SDL_Window)(w.window)
+}
+
+func (w *Window) Renderer() *Renderer {
+	r := C.SDL_GetRenderer(w.w())
+	return &Renderer{ unsafe.Pointer(r) }
+}
+
+func (w *Window) Surface() *Surface {
+	s := C.SDL_GetWindowSurface(w.w())
+	return &Surface{ unsafe.Pointer(s) }
+}
+
+func (w *Window) Destroy() {
+	if w.w() != nil {
+		C.SDL_DestroyWindow(w.w())
+	}
+}
+
+type Context struct {
+	*Window
+	*Renderer
+	*Surface
 }
 
 // NewContext creates a Context referring to a new window with a given title and
@@ -98,36 +114,23 @@ func NewContext(title string, width, height int) (*Context, error) {
 	if errno := C.SDL_SetHint(C.kHintRenderScaleQuality, one); errno == 0 {
 		return nil, fmt.Errorf("unable to set hint: %d %s", Err());
 	}
-	winTitle := C.CString(title)
-	defer C.free(unsafe.Pointer(winTitle))
-	w := C.SDL_CreateWindow(winTitle, C.kWindowPosUndefined, C.kWindowPosUndefined, C.int(width), C.int(height), C.kWindowShown)
-	if w == nil {
-		return nil, fmt.Errorf("unable to create SDL Window: %s", Err());
+
+	w, err := NewWindow(title, width, height)
+	if err != nil {
+		return nil, err
 	}
-	s := C.SDL_GetWindowSurface(w)
-	r := C.SDL_GetRenderer(w)
-	C.SDL_SetRenderDrawColor(r, 0x00, 0x00, 0x00, 0xFF);
-	
 	ctx := &Context{
-		window: unsafe.Pointer(w),
-		primarySurface: unsafe.Pointer(s),
-		renderer: unsafe.Pointer(r),
+		Window: w,
+		Surface: w.Surface(),
+		Renderer: w.Renderer(),
 	}
+	ctx.Renderer.SetDrawColor(0x00, 0x00, 0x00, 0xff)
 	return ctx, nil
 }
 
 func (c *Context) Close() {
-	if c.renderer != nil {
-		C.SDL_DestroyRenderer((*C.SDL_Renderer)(c.renderer))
-	}
-	if c.window != nil {
-		C.SDL_DestroyWindow((*C.SDL_Window)(c.window))
-	}
+	c.Renderer.Destroy()
+	c.Window.Destroy()
 	C.SDL_Quit()
 }
 
-func (c *Context) Render() {
-	r := (*C.SDL_Renderer)(c.renderer)
-	C.SDL_RenderClear(r)
-	C.SDL_RenderPresent(r)
-}
