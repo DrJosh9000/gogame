@@ -10,6 +10,25 @@ const (
 	gameName = "gogame"
 )
 
+var (
+	quitting = errors.New("quitting")
+)
+
+func eventHandler(e interface{}) error {
+	switch v := e.(type) {
+	case sdl.QuitEvent:
+		return quitting
+	case sdl.KeyEvent:
+		if v.Type == sdl.KeyUp {
+			switch v.KeyCode {
+			case 'q':
+				return quitting
+			}
+		}
+	}
+	return nil
+}
+
 func main() {
 	ctx, err := sdl.NewContext(gameName, defaultWidth, defaultHeight)
 	if err != nil {
@@ -17,20 +36,9 @@ func main() {
 	}
 	defer ctx.Close()
 
-	quit := 	errors.New("quitting")
 	for {
-		err = sdl.HandleEvents(func(e interface{}) error {
-			switch v := e.(type) {
-			case sdl.QuitEvent:
-				return quit
-			case sdl.KeyEvent:
-				if v.Type == sdl.KeyUp && v.KeyCode == 'q' {
-					return quit
-				}
-			}
-			return nil
-		})
-		if err == quit {
+		err = sdl.HandleEvents(eventHandler)
+		if err == quitting {
 			return
 		}
 		ctx.Render()
