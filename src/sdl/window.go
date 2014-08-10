@@ -37,7 +37,7 @@ func (w *Window) w() *C.SDL_Window {
 func (w *Window) CreateRenderer(opts RendererOption) (*Renderer, error) {
 	r := C.SDL_CreateRenderer(w.w(), -1, C.Uint32(opts))
 	if r == nil {
-		return nil, fmt.Errorf("unable to create SDL Renderer with opts %d", opts)
+		return nil, fmt.Errorf("unable to create SDL Renderer with opts %d: %s", opts, Err())
 	}
 	return &Renderer{unsafe.Pointer(r)}, nil
 }

@@ -14,7 +14,7 @@ const int kRendererTargetTexture = SDL_RENDERER_TARGETTEXTURE;
 */
 import "C"
 import (
-	"errors"
+	"fmt"
 	"unsafe"
 )
 
@@ -35,9 +35,16 @@ func (r *Renderer) r() *C.SDL_Renderer {
 	return (*C.SDL_Renderer)(r.renderer)
 }
 
-func (r *Renderer) Render() {
+func (r *Renderer) Clear() {
 	C.SDL_RenderClear(r.r())
+}
+
+func (r *Renderer) Present() {
 	C.SDL_RenderPresent(r.r())
+}
+
+func (r *Renderer) Copy(t *Texture, src, dst *C.SDL_Rect) {
+	C.SDL_RenderCopy(r.r(), t.t(), src, dst)
 }
 
 func (r *Renderer) Destroy() {
@@ -53,7 +60,7 @@ func (r *Renderer) SetDrawColor(c Color) {
 func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {
 	t := C.SDL_CreateTextureFromSurface(r.r(), s.s())
 	if t == nil {
-		return nil, errors.New("unable to create texture from surface")
+		return nil, fmt.Errorf("unable to create texture from surface: %s", Err())
 	}
 	return &Texture{unsafe.Pointer(t)}, nil
 }

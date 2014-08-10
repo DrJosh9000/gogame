@@ -8,7 +8,7 @@ package sdl
 #include <SDL.h>
 
 // Because SDL_LoadBMP is a macro.
-SDL_Surface* loadbmp(char *file) {
+SDL_Surface* loadbmp(const char *file) {
 	return SDL_LoadBMP(file);
 }
 */
@@ -31,7 +31,7 @@ func LoadBMP(path string) (*Surface, error) {
 	defer C.free(unsafe.Pointer(cp))
 	s := C.loadbmp(cp)
 	if s == nil {
-		return nil, fmt.Errorf("unable to load BMP %q", path)
+		return nil, fmt.Errorf("unable to load BMP %q: %s", path, Err())
 	}
 	return &Surface{unsafe.Pointer(s)}, nil
 }

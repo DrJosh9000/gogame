@@ -29,7 +29,7 @@ func Err() string {
 }
 
 type Color struct {
-	red, green, blue, alpha byte
+	red, green, blue, alpha uint8
 }
 
 var BlackColor = Color{0x00, 0x00, 0x00, 0xff}
@@ -41,7 +41,7 @@ type Context struct {
 }
 
 // NewContext creates a Context referring to a new window with a given title and
-// size. Don't forget to Close the context when done.
+// size, and a sensible renderer. Don't forget to Close the context when done.
 func NewContext(title string, width, height int) (*Context, error) {
 
 	if errno := C.SDL_Init(C.kInitEverything); errno < 0 {

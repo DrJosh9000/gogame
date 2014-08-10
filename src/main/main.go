@@ -35,13 +35,21 @@ func main() {
 		panic(err)
 	}
 	defer ctx.Close()
+	r := ctx.Renderer
+	
+	hello, err := r.LoadBMP("../assets/hello.bmp")
+	if err != nil {
+		panic(err)
+	}
 
 	for {
 		err = sdl.HandleEvents(eventHandler)
 		if err == quitting {
 			return
 		}
-		ctx.Render()
+		r.Clear()
+		r.Copy(hello, nil, nil)
+		r.Present()
 		sdl.Delay(1)
 	}
 }
