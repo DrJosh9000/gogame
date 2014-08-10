@@ -1,0 +1,70 @@
+package sdl
+
+/*
+#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
+#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
+
+#include <stdlib.h>
+#include <SDL.h>
+
+const int kRendererSoftware = SDL_RENDERER_SOFTWARE;
+const int kRendererAccelerated = SDL_RENDERER_ACCELERATED;
+const int kRendererPresentVSync = SDL_RENDERER_PRESENTVSYNC;
+const int kRendererTargetTexture = SDL_RENDERER_TARGETTEXTURE;
+*/
+import "C"
+import (
+	"errors"
+	"unsafe"
+)
+
+type RendererOption uint32
+
+const (
+	RendererSoftware      RendererOption = C.kRendererSoftware
+	RendererAccelerated   RendererOption = C.kRendererAccelerated
+	RendererPresentVSync  RendererOption = C.kRendererPresentVSync
+	RendererTargetTexture RendererOption = C.kRendererTargetTexture
+)
+
+type Renderer struct {
+	renderer unsafe.Pointer
+}
+
+func (r *Renderer) r() *C.SDL_Renderer {
+	return (*C.SDL_Renderer)(r.renderer)
+}
+
+func (r *Renderer) Render() {
+	C.SDL_RenderClear(r.r())
+	C.SDL_RenderPresent(r.r())
+}
+
+func (r *Renderer) Destroy() {
+	if r.r() != nil {
+		C.SDL_DestroyRenderer(r.r())
+	}
+}
+
+func (r *Renderer) SetDrawColor(c Color) {
+	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.red), C.Uint8(c.green), C.Uint8(c.blue), C.Uint8(c.alpha))
+}
+
+func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {
+	t := C.SDL_CreateTextureFromSurface(r.r(), s.s())
+	if t == nil {
+		return nil, errors.New("unable to create texture from surface")
+	}
+	return &Texture{unsafe.Pointer(t)}, nil
+}
+
+// Convenience function that loads a BMP into a surface,
+// adds it to the renderer as a texture, and frees the surface.
+func (r *Renderer) LoadBMP(path string) (*Texture, error) {
+	s, err := LoadBMP(path)
+	if err != nil {
+		return nil, err
+	}
+	defer s.Free()
+	return r.TextureFromSurface(s)
+}

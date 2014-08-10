@@ -21,13 +21,15 @@ SDL_Keycode getKeyCode(SDL_Event *ev) {
 import "C"
 
 type KeyEventType int
+
 const (
 	KeyDown KeyEventType = iota
 	KeyUp
 )
+
 type QuitEvent int
 type KeyEvent struct {
-	Type KeyEventType
+	Type    KeyEventType
 	KeyCode uint32
 }
 
@@ -40,12 +42,12 @@ func HandleEvents(handler func(e interface{}) error) error {
 			err = handler(QuitEvent(0))
 		case C.kKeyDown:
 			err = handler(KeyEvent{
-				Type: KeyDown,
+				Type:    KeyDown,
 				KeyCode: uint32(C.getKeyCode(&ev)),
 			})
 		case C.kKeyUp:
 			err = handler(KeyEvent{
-				Type: KeyUp,
+				Type:    KeyUp,
 				KeyCode: uint32(C.getKeyCode(&ev)),
 			})
 		}

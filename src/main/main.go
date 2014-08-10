@@ -7,7 +7,7 @@ import (
 
 const (
 	defaultWidth, defaultHeight = 1024, 768
-	gameName = "gogame"
+	gameName                    = "gogame"
 )
 
 var (
