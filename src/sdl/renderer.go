@@ -11,6 +11,10 @@ const int kRendererSoftware = SDL_RENDERER_SOFTWARE;
 const int kRendererAccelerated = SDL_RENDERER_ACCELERATED;
 const int kRendererPresentVSync = SDL_RENDERER_PRESENTVSYNC;
 const int kRendererTargetTexture = SDL_RENDERER_TARGETTEXTURE;
+
+const int kFlipNone = SDL_FLIP_NONE;
+const int kFlipHorizontal = SDL_FLIP_HORIZONTAL;
+const int kFlipVertical = SDL_FLIP_VERTICAL;
 */
 import "C"
 import (
@@ -19,12 +23,17 @@ import (
 )
 
 type RendererOption uint32
+type RendererFlip uint32
 
 const (
 	RendererSoftware      RendererOption = C.kRendererSoftware
 	RendererAccelerated   RendererOption = C.kRendererAccelerated
 	RendererPresentVSync  RendererOption = C.kRendererPresentVSync
 	RendererTargetTexture RendererOption = C.kRendererTargetTexture
+
+	FlipNone       RendererFlip = C.kFlipNone
+	FlipHorizontal RendererFlip = C.kFlipHorizontal
+	FlipVertical   RendererFlip = C.kFlipVertical
 )
 
 type Renderer struct {
@@ -45,6 +54,10 @@ func (r *Renderer) Present() {
 
 func (r *Renderer) Copy(t *Texture, src, dst *C.SDL_Rect) {
 	C.SDL_RenderCopy(r.r(), t.t(), src, dst)
+}
+
+func (r *Renderer) CopyEx(t *Texture, src, dst *C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) {
+	C.SDL_RenderCopyEx(r.r(), t.t(), src, dst, C.double(angle), center, C.SDL_RendererFlip(flip))
 }
 
 func (r *Renderer) Destroy() {
