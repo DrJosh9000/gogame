@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	
+	"game"
 	"sdl"
 )
 
@@ -41,6 +43,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	g := game.NewGame()
+	defer g.Destroy()
 
 	for {
 		err = sdl.HandleEvents(eventHandler)
