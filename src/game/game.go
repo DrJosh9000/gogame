@@ -1,3 +1,4 @@
+// Package game contains the game logic and stuff.
 package game
 
 import (

@@ -1,3 +1,7 @@
+// "gogame"
+// Something that might turn into a game.
+// Is currently my own custom set of bindings for SDL2.
+// On Mac. Yay.
 package main
 
 import (
