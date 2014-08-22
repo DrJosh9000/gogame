@@ -8,15 +8,8 @@ import (
 const (
 	gameTickerDuration = 10 * time.Millisecond
 )
-
-type Object interface {
-	Children() []Object
-	Destroy()
-	Parent() Object
-	Update(t time.Duration)
-}
-
 type Game struct {
+	*Base
 	t0 time.Time
 	ticker *time.Ticker
 }
@@ -34,14 +27,6 @@ func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
 		g.Update(t.Sub(g.t0))
 	}
-}
-
-func (g *Game) Children() []Object {
-	return nil
-}
-
-func (g *Game) Parent() Object {
-	return g
 }
 
 func (g *Game) Update(t time.Duration) {
