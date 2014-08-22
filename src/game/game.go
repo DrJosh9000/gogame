@@ -10,30 +10,30 @@ const (
 )
 
 type Game struct {
-	T0 time.Time
-	*time.Ticker
+	t0 time.Time
+	ticker *time.Ticker
 }
 
 func NewGame() *Game {
 	g := &Game {
-		T0: time.Now(),
-		Ticker: time.NewTicker(gameTickerDuration),
+		t0: time.Now(),
+		ticker: time.NewTicker(gameTickerDuration),
 	}
 	go g.tickLoop()
 	return g
 }
 
 func (g *Game) tickLoop() {
-	for t := range g.Ticker.C {
+	for t := range g.ticker.C {
 		g.Update(t)
 	}
 }
 
 func (g *Game) Update(t time.Time) {
 	// TODO: implement
-	fmt.Printf("The time is %v\n", t)
+	fmt.Printf("The time is %v\n", t.Sub(g.t0))
 }
 
 func (g *Game) Destroy() {
-	g.Ticker.Stop()
+	g.ticker.Stop()
 }
