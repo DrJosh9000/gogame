@@ -31,7 +31,7 @@ func (g *Game) tickLoop() {
 
 func (g *Game) Update(t time.Time) {
 	// TODO: implement
-	fmt.Printf("The time is %v\n", t.Sub(g.t0))
+	//fmt.Printf("The time is %v\n", t.Sub(g.t0))
 }
 
 func (g *Game) Destroy() {
