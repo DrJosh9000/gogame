@@ -5,18 +5,10 @@ import (
 )
 
 type Player struct {
-	
+	*Base
 }
 
 func NewPlayer() *Player {
-	return nil
-}
-
-func (p *Player) Children() []Object {
-	return nil
-}
-
-func (p *Player) Parent() Object {
 	return nil
 }
 
