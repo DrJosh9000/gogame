@@ -2,13 +2,18 @@
 package game
 
 import (
-	"fmt"
 	"time"
 )
 
 const (
 	gameTickerDuration = 10 * time.Millisecond
 )
+
+type Object interface {
+	Destroy()
+	Parent() Object
+	Update(t time.Duration)
+}
 
 type Game struct {
 	t0 time.Time
@@ -26,13 +31,17 @@ func NewGame() *Game {
 
 func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
-		g.Update(t)
+		g.Update(t.Sub(g.t0))
 	}
 }
 
-func (g *Game) Update(t time.Time) {
+func (g *Game) Parent() Object {
+	return g
+}
+
+func (g *Game) Update(t time.Duration) {
 	// TODO: implement
-	//fmt.Printf("The time is %v\n", t.Sub(g.t0))
+	//fmt.Printf("The game time is %v\n", t)
 }
 
 func (g *Game) Destroy() {
