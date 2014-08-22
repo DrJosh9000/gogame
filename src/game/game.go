@@ -10,6 +10,7 @@ const (
 )
 
 type Object interface {
+	Children() []Object
 	Destroy()
 	Parent() Object
 	Update(t time.Duration)
@@ -33,6 +34,10 @@ func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
 		g.Update(t.Sub(g.t0))
 	}
+}
+
+func (g *Game) Children() []Object {
+	return nil
 }
 
 func (g *Game) Parent() Object {
