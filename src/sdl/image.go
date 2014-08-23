@@ -11,14 +11,12 @@ import "C"
 
 import (
 	"fmt"
-	"os"
 	"unsafe"
 )
 
 func init() {
 	if e := C.IMG_Init(C.IMG_INIT_PNG); e & C.IMG_INIT_PNG == 0 {
-		fmt.Fprintf(os.Stderr, "ERROR Unable to init PNG support with SDL_image (got init mask %x)\n", e)
-		os.Exit(1)
+		panic(fmt.Sprintf("Unable to init PNG support with SDL_image (got init mask %x)", e))
 	}
 }
 

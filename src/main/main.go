@@ -49,13 +49,11 @@ func main() {
 	}
 	defer ctx.Close()
 	r := ctx.Renderer
-	
-	hello, err := r.LoadImage("assets/spacepsn.png")
-	if err != nil {
+
+	if err := game.InitAll(ctx); err != nil {
 		panic(err)
 	}
-
-	g = game.NewGame()
+	g = game.NewGame(r)
 	defer g.Destroy()
 
 	for {
@@ -64,8 +62,7 @@ func main() {
 			return
 		}
 		r.Clear()
-		g.Draw()
-		r.Copy(hello, nil, sdl.Rect(500, 500, 32, 32))
+		g.Draw(r)
 		r.Present()
 		sdl.Delay(1)
 	}

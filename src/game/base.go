@@ -2,13 +2,15 @@ package game
 
 import (
 	"time"
+	
+	"sdl"
 )
 
 type Object interface {
 	AddChild(Object)
 	Children() []Object
 	Destroy()
-	Draw()
+	Draw(*sdl.Renderer)
 	Update(t time.Duration)
 }
 
@@ -24,8 +26,12 @@ func (b *Base) Children() []Object {
 	return b.children
 }
 
-func (b *Base) Draw() {
-	// TODO: implement
+func (b *Base) Draw(r *sdl.Renderer) {
+	for _, c := range b.children {
+		if c != nil {
+			c.Draw(r)
+		}
+	}
 }
 
 func (b *Base) Update(t time.Duration) {

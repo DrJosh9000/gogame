@@ -3,6 +3,8 @@ package game
 
 import (
 	"time"
+	
+	"sdl"
 )
 
 const (
@@ -12,17 +14,19 @@ type Game struct {
 	Base
 	t0 time.Time
 	ticker *time.Ticker
-	
+		
 	player *Player
 }
 
-func NewGame() *Game {
+func NewGame(r *sdl.Renderer) *Game {
+	// Load some initial stuff
 	g := &Game {
 		t0: time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: NewPlayer(),
 	}
 	g.AddChild(g.player)
+	g.AddChild(NewTerrain())
 	go g.tickLoop()
 	return g
 }
@@ -52,6 +56,16 @@ func (g *Game) HandleKey(k uint32) error {
 		return nil
 	default:
 		return nil
+	}
+	return nil
+}
+
+func InitAll(ctx *sdl.Context) error {
+	if err := InitPlayerTexture(ctx.Renderer); err != nil {
+		return err
+	}
+	if err := InitTerrainTextures(ctx.Renderer); err != nil {
+		return err
 	}
 	return nil
 }
