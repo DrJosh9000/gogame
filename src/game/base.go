@@ -1,8 +1,6 @@
 package game
 
 import (
-	"time"
-
 	"sdl"
 )
 
@@ -11,7 +9,6 @@ type Object interface {
 	Children() []Object
 	Destroy()
 	Draw(*sdl.Renderer) error
-	Update(t time.Duration)
 }
 
 type Base struct {
@@ -35,14 +32,6 @@ func (b *Base) Draw(r *sdl.Renderer) error {
 		}
 	}
 	return nil
-}
-
-func (b *Base) Update(t time.Duration) {
-	for _, c := range b.children {
-		if c != nil {
-			c.Update(t)
-		}
-	}
 }
 
 func (b *Base) Destroy() {

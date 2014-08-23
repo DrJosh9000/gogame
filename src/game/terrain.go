@@ -55,12 +55,8 @@ type Terrain struct {
 	Base
 }
 
-func NewTerrain(ctx *sdl.Context) (*Terrain, error) {
+func NewTerrain(ctx *sdl.Context, m LevelMap) (*Terrain, error) {
 	t := &Terrain{}
-	m, err := LoadMap("assets/level0.txt")
-	if err != nil {
-		return nil, err
-	}
 	l, err := newLayer(ctx, m)
 	if err != nil {
 		return nil, err

@@ -19,6 +19,7 @@ type Game struct {
 	ticker *time.Ticker
 
 	player *Player
+	level LevelMap
 }
 
 func NewGame(ctx *sdl.Context) (*Game, error) {
@@ -26,7 +27,13 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	t, err := NewTerrain(ctx)
+	
+	m, err := LoadMap("assets/level0.txt")
+	if err != nil {
+		return nil, err
+	}
+	
+	t, err := NewTerrain(ctx, m)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +43,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
+		level:  m,
 	}
 	g.AddChild(t)
 	g.AddChild(p)
@@ -45,7 +53,8 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 
 func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
-		g.Update(t.Sub(g.t0))
+		dt := t.Sub(g.t0)
+		g.player.Ticker <- dt
 	}
 }
 
@@ -82,7 +91,9 @@ func (g *Game) HandleEvent(ev interface{}) error {
 					g.player.Controller <- StopWalkRight
 				}
 			case 'e':
-				fmt.Println("use")
+				if v.Type == sdl.KeyDown {
+					g.player.Controller <- Teleport
+				}
 			default:
 				fmt.Println("other")
 			}
