@@ -1,11 +1,8 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
-#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
-
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 const int kWindowPosUndefined = SDL_WINDOWPOS_UNDEFINED;
 const int kWindowShown = SDL_WINDOW_SHOWN;

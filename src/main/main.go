@@ -66,7 +66,7 @@ func main() {
 			return
 		}
 		r.Clear()
-		//r.Copy(hello, nil, sdl.Rect(500, 500, 200, 200))
+		g.Draw()
 		r.Present()
 		sdl.Delay(1)
 	}
