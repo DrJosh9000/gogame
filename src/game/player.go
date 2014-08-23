@@ -1,7 +1,7 @@
 package game
 
 import (
-	"time"
+	"math/rand"
 
 	"sdl"
 )
@@ -22,7 +22,11 @@ type Player struct {
 }
 
 func NewPlayer() *Player {
-	return &Player{tex: textureSpaceperson}
+	return &Player{
+		x: int(rand.Int31() % (1024-playerWidth)),
+		y: int(rand.Int31() % (768-playerHeight)),
+		tex: textureSpaceperson,
+	}
 }
 
 func (p *Player) Draw(r *sdl.Renderer) {
@@ -30,12 +34,6 @@ func (p *Player) Draw(r *sdl.Renderer) {
 		panic("player texture not initialised")
 	}
 	r.Copy(p.tex, sdl.Rect(0, 0, playerWidth, playerHeight), sdl.Rect(p.x, p.y, playerWidth, playerHeight))
-}
-
-func (p *Player) Update(t time.Duration) {
-	// TODO: implement
-
-	p.Base.Update(t)
 }
 
 func InitPlayerTexture(r *sdl.Renderer) error {
