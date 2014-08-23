@@ -9,7 +9,9 @@ type Player struct {
 }
 
 func NewPlayer() *Player {
-	return nil
+	return &Player {
+		&Base{},
+	}
 }
 
 func (p *Player) Update(t time.Duration) {

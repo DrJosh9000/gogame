@@ -18,6 +18,8 @@ const (
 
 var (
 	quitting = errors.New("quitting")
+	
+	g *game.Game
 )
 
 func eventHandler(e interface{}) error {
@@ -29,6 +31,11 @@ func eventHandler(e interface{}) error {
 			switch v.KeyCode {
 			case 'q':
 				return quitting
+			default:
+				// Get the game to handle all other events
+				if g != nil {
+					return g.HandleKey(v.KeyCode)
+				}
 			}
 		}
 	}
@@ -50,7 +57,7 @@ func main() {
 	}
 	*/
 
-	g := game.NewGame()
+	g = game.NewGame()
 	defer g.Destroy()
 
 	for {

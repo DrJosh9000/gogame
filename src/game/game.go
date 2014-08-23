@@ -37,3 +37,11 @@ func (g *Game) Update(t time.Duration) {
 func (g *Game) Destroy() {
 	g.ticker.Stop()
 }
+
+func (g *Game) HandleKey(k uint32) error {
+	switch k {
+	default:
+		return nil
+	}
+	return nil
+}
