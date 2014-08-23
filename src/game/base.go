@@ -8,6 +8,7 @@ type Object interface {
 	AddChild(Object)
 	Children() []Object
 	Destroy()
+	Draw()
 	Update(t time.Duration)
 }
 
@@ -21,6 +22,10 @@ func (b *Base) AddChild(c Object) {
 
 func (b *Base) Children() []Object {
 	return b.children
+}
+
+func (b *Base) Draw() {
+	// TODO: implement
 }
 
 func (b *Base) Update(t time.Duration) {

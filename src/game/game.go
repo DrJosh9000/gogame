@@ -40,6 +40,8 @@ func (g *Game) Destroy() {
 
 func (g *Game) HandleKey(k uint32) error {
 	switch k {
+	case ' ':
+		return nil
 	case 'w':
 		return nil
 	case 'a':
