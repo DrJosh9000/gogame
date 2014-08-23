@@ -9,4 +9,29 @@ package sdl
 */
 import "C"
 
+import (
+	"fmt"
+	"os"
+	"unsafe"
+)
 
+func init() {
+	if e := C.IMG_Init(C.IMG_INIT_PNG); e & C.IMG_INIT_PNG == 0 {
+		fmt.Fprintf(os.Stderr, "ERROR Unable to init PNG support with SDL_image (got init mask %x)\n", e)
+		os.Exit(1)
+	}
+}
+
+func ImgErr() string {
+	return C.GoString(C.IMG_GetError())
+}
+
+func LoadImage(file string) (*Surface, error) {
+	cf := C.CString(file)
+	defer C.free(unsafe.Pointer(cf))
+	img := C.IMG_Load(cf)
+	if img == nil {
+		return nil, fmt.Errorf("unable to load image at %q: %v", file, ImgErr())
+	}
+	return &Surface{unsafe.Pointer(img)}, nil
+}

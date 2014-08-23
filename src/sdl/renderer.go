@@ -1,9 +1,6 @@
 package sdl
 
 /*
-#cgo CFLAGS: -Iinclude
-#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
-
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
@@ -88,3 +85,15 @@ func (r *Renderer) LoadBMP(path string) (*Texture, error) {
 	defer s.Free()
 	return r.TextureFromSurface(s)
 }
+
+// Similar but uses the SDL_image library.
+func (r *Renderer) LoadImage(path string) (*Texture, error) {
+	s, err := LoadImage(path)
+	if err != nil {
+		return nil, err
+	}
+	defer s.Free()
+	return r.TextureFromSurface(s)
+}
+
+

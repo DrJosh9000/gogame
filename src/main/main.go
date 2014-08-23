@@ -50,12 +50,10 @@ func main() {
 	defer ctx.Close()
 	r := ctx.Renderer
 	
-	/*
-	hello, err := r.LoadBMP("assets/hello.bmp")
+	hello, err := r.LoadImage("assets/spacepsn.png")
 	if err != nil {
 		panic(err)
 	}
-	*/
 
 	g = game.NewGame()
 	defer g.Destroy()
@@ -67,6 +65,7 @@ func main() {
 		}
 		r.Clear()
 		g.Draw()
+		r.Copy(hello, nil, sdl.Rect(500, 500, 32, 32))
 		r.Present()
 		sdl.Delay(1)
 	}
