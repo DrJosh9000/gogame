@@ -12,13 +12,18 @@ type Game struct {
 	*Base
 	t0 time.Time
 	ticker *time.Ticker
+	
+	player *Player
 }
 
 func NewGame() *Game {
 	g := &Game {
+		Base: &Base{},
 		t0: time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
+		player: NewPlayer(),
 	}
+	g.AddChild(g.player)
 	go g.tickLoop()
 	return g
 }
@@ -29,17 +34,21 @@ func (g *Game) tickLoop() {
 	}
 }
 
-func (g *Game) Update(t time.Duration) {
-	// TODO: implement
-	//fmt.Printf("The game time is %v\n", t)
-}
-
 func (g *Game) Destroy() {
 	g.ticker.Stop()
+	g.Base.Destroy()
 }
 
 func (g *Game) HandleKey(k uint32) error {
 	switch k {
+	case 'w':
+		return nil
+	case 'a':
+		return nil
+	case 's':
+		return nil
+	case 'd':
+		return nil
 	default:
 		return nil
 	}

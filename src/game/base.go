@@ -22,3 +22,20 @@ func (b *Base) AddChild(c Object) {
 func (b *Base) Children() []Object {
 	return b.children
 }
+
+func (b *Base) Update(t time.Duration) {
+	for _, c := range b.children {
+		if c != nil {
+			c.Update(t)
+		}
+	}
+}
+
+
+func (b *Base) Destroy() {
+	for _, c := range b.children {
+		if c != nil {
+			c.Destroy()
+		}
+	}
+}
