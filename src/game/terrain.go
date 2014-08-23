@@ -48,7 +48,7 @@ func newLayer() *layer {
 			l.AddChild(&tile{
 				x:  i * tileWidth,
 				y:  j * tileHeight,
-				id: 1, // TODO: load from somewhere
+				id: 0, // TODO: load from somewhere
 			})
 		}
 	}
