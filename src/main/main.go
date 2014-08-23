@@ -43,10 +43,12 @@ func main() {
 	defer ctx.Close()
 	r := ctx.Renderer
 	
+	/*
 	hello, err := r.LoadBMP("assets/hello.bmp")
 	if err != nil {
 		panic(err)
 	}
+	*/
 
 	g := game.NewGame()
 	defer g.Destroy()
@@ -57,7 +59,7 @@ func main() {
 			return
 		}
 		r.Clear()
-		r.Copy(hello, nil, sdl.Rect(500, 500, 200, 200))
+		//r.Copy(hello, nil, sdl.Rect(500, 500, 200, 200))
 		r.Present()
 		sdl.Delay(1)
 	}
