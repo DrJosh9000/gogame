@@ -1,7 +1,7 @@
 package game
 
 import (
-	"fmt"
+	//"fmt"
 	"math/rand"
 	"time"
 
@@ -14,6 +14,8 @@ const (
 	playerWidth, playerHeight = 32, 32
 	
 	playerWalkSpeed = 256 // pixels per second?
+	
+	playerTau = 0.3
 )
 
 type Facing int
@@ -38,7 +40,7 @@ const (
 type Player struct {
 	Base
 	x, y, frame int
-	fx, fy float64
+	fx, fy, dx, dy float64
 	tex  *sdl.Texture
 	lastUpdate time.Duration
 	
@@ -47,6 +49,7 @@ type Player struct {
 	// All struct elements below should be controlled only by the life goroutine.
 	facing Facing
 	walking bool
+	wx, wy float64
 }
 
 func NewPlayer(ctx *sdl.Context) (*Player, error) {
@@ -84,21 +87,19 @@ func (p *Player) Update(t time.Duration) {
 		p.lastUpdate = t
 		return
 	}
-	delta := t - p.lastUpdate
-	//fmt.Printf("delta %d\n", delta)
+	delta := float64(t - p.lastUpdate)
 	if p.walking {
-		dist := float64(playerWalkSpeed * delta) / float64(time.Second)
-		fmt.Printf("dist %06f\n", dist)
-		switch p.facing {
-		case Left:
-			p.fx -= dist
-		case Right:
-			p.fx += dist
-		}
 		p.frame = (int(2 * t / time.Millisecond) % 1000) / 250
 	} else {
 		p.frame = 0
 	}
+	p.dx = playerTau * p.wx + (1-playerTau) * p.dx
+	p.dy = playerTau * p.wy + (1-playerTau) * p.dy
+	
+	// FISIXX
+	const sec = float64(time.Second)
+	p.fx += (p.dx * delta) / sec
+	p.fy += (p.dy * delta) / sec
 	p.x = int(p.fx)
 	p.y = int(p.fy)
 	p.lastUpdate = t
@@ -114,13 +115,17 @@ func (p *Player) life() {
 			case StartWalkLeft:
 				p.walking = true
 				p.facing = Left
+				p.wx = -playerWalkSpeed
 			case StopWalkLeft:
 				p.walking = false
+				p.wx = 0
 			case StartWalkRight:
 				p.walking = true
 				p.facing = Right
+				p.wx = playerWalkSpeed
 			case StopWalkRight:
 				p.walking = false
+				p.wx = 0
 			default:
 				// TODO: more actions
 			}
