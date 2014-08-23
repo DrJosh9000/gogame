@@ -136,10 +136,10 @@ func (p *Player) update(t time.Duration) {
 	p.lastUpdate = t
 }
 
-func (p *Player) control(ctl Control) {
+func (p *Player) control(ctl Control) bool {
 	switch ctl {
 	case Quit:
-		return
+		return true
 	case StartWalkLeft:
 		switch p.anim {
 		case Standing, Walking:
@@ -184,13 +184,16 @@ func (p *Player) control(ctl Control) {
 	default:
 		// TODO: more actions
 	}
+	return false
 }
 
 func (p *Player) life() {
 	for {
 		select {
 		case c := <-p.Controller:
-			p.control(c)
+			if p.control(c) {
+				return
+			}
 		case t := <-p.Updater:
 			p.update(t)
 		}
