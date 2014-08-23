@@ -58,7 +58,7 @@ func NewContext(title string, width, height int) (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	r, err := w.CreateRenderer(RendererAccelerated) // | RendererPresentVSync)
+	r, err := w.CreateRenderer(RendererAccelerated | RendererPresentVSync)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +72,7 @@ func NewContext(title string, width, height int) (*Context, error) {
 }
 
 func (c *Context) Close() {
+	c.TextureManager.Destroy()
 	c.Renderer.Destroy()
 	c.Window.Destroy()
 	C.SDL_Quit()

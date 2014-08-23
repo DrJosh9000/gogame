@@ -6,6 +6,7 @@ package main
 
 import (
 	"errors"
+	"runtime"
 
 	"game"
 	"sdl"
@@ -21,6 +22,9 @@ var (
 )
 
 func main() {
+	// Must do rendering from the main thread, duh.
+	runtime.LockOSThread()
+	
 	ctx, err := sdl.NewContext(gameName, defaultWidth, defaultHeight)
 	if err != nil {
 		panic(err)
