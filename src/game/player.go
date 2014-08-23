@@ -29,7 +29,7 @@ func NewPlayer(ctx *sdl.Context) (*Player, error) {
 	}, nil
 }
 
-func (p *Player) Draw(r *sdl.Renderer) {
-	r.Copy(p.tex, sdl.Rect(0, 0, playerWidth, playerHeight), sdl.Rect(p.x, p.y, playerWidth, playerHeight))
+func (p *Player) Draw(r *sdl.Renderer) error {
+	return r.Copy(p.tex, sdl.Rect(0, 0, playerWidth, playerHeight), sdl.Rect(p.x, p.y, playerWidth, playerHeight))
 }
 

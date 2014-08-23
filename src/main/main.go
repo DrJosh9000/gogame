@@ -57,8 +57,12 @@ func main() {
 		if err == quitting {
 			return
 		}
-		r.Clear()
-		g.Draw(r)
+		if err := r.Clear(); err != nil {
+			panic(err)
+		}
+		if err := g.Draw(r); err != nil {
+			panic(err)
+		}
 		r.Present()
 		sdl.Delay(1)
 	}

@@ -41,11 +41,15 @@ func newLayer(ctx *sdl.Context) (*layer, error) {
 	return l, nil
 }
 
-func (l *layer) Draw(r *sdl.Renderer) {
+func (l *layer) Draw(r *sdl.Renderer) error {
 	for _, t := range l.tiles {
-		r.Copy(l.tex, sdl.Rect((t.id%tileSheetWidth)*32, (t.id/tileSheetWidth)*32, tileWidth, tileHeight),
-			sdl.Rect(t.x, t.y, tileWidth, tileHeight))
+		if err := r.Copy(l.tex,
+			sdl.Rect((t.id%tileSheetWidth)*32, (t.id/tileSheetWidth)*32, tileWidth, tileHeight),
+			sdl.Rect(t.x, t.y, tileWidth, tileHeight)); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 type Terrain struct {

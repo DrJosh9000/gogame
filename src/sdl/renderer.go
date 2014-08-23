@@ -41,20 +41,30 @@ func (r *Renderer) r() *C.SDL_Renderer {
 	return (*C.SDL_Renderer)(r.renderer)
 }
 
-func (r *Renderer) Clear() {
-	C.SDL_RenderClear(r.r())
+func (r *Renderer) Clear() error {
+	if errno := C.SDL_RenderClear(r.r()); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderClear: %d %s", errno, Err())
+	}
+	return nil
 }
 
 func (r *Renderer) Present() {
 	C.SDL_RenderPresent(r.r())
 }
 
-func (r *Renderer) Copy(t *Texture, src, dst C.SDL_Rect) {
-	C.SDL_RenderCopy(r.r(), t.t(), &src, &dst)
+func (r *Renderer) Copy(t *Texture, src, dst C.SDL_Rect) error {
+	//fmt.Printf("r: %x    t: %x\n", r.renderer, t.texture)
+	if errno := C.SDL_RenderCopy(r.r(), t.t(), &src, &dst); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderCopy: %d %s", errno, Err())
+	}
+	return nil
 }
 
-func (r *Renderer) CopyEx(t *Texture, src, dst C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) {
-	C.SDL_RenderCopyEx(r.r(), t.t(), &src, &dst, C.double(angle), center, C.SDL_RendererFlip(flip))
+func (r *Renderer) CopyEx(t *Texture, src, dst C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) error {
+	if errno := C.SDL_RenderCopyEx(r.r(), t.t(), &src, &dst, C.double(angle), center, C.SDL_RendererFlip(flip)); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderCopyEx: %d %s", errno, Err())
+	}
+	return nil
 }
 
 func (r *Renderer) Destroy() {

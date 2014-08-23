@@ -10,7 +10,7 @@ type Object interface {
 	AddChild(Object)
 	Children() []Object
 	Destroy()
-	Draw(*sdl.Renderer)
+	Draw(*sdl.Renderer) error
 	Update(t time.Duration)
 }
 
@@ -26,12 +26,15 @@ func (b *Base) Children() []Object {
 	return b.children
 }
 
-func (b *Base) Draw(r *sdl.Renderer) {
+func (b *Base) Draw(r *sdl.Renderer) error {
 	for _, c := range b.children {
 		if c != nil {
-			c.Draw(r)
+			if err := c.Draw(r); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func (b *Base) Update(t time.Duration) {
