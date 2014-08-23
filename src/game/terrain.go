@@ -2,7 +2,6 @@ package game
 
 import (
 	"math/rand"
-	"time"
 
 	"sdl"
 )
@@ -14,65 +13,55 @@ const (
 	tileSheetWidth, tileSheetHeight = 8, 8
 )
 
-var (
-	terrainTileSheet *sdl.Texture
-)
-
 type tile struct {
 	// x and y position in pixels - woo arbitrary!
 	// id index in tile sheet
 	x, y, id int
 }
 
-// Tile needs basically no work.
-func (t *tile) AddChild(Object)      {}
-func (t *tile) Children() []Object   { return nil }
-func (t *tile) Update(time.Duration) {}
-func (t *tile) Destroy()             {}
-
-func (t *tile) Draw(r *sdl.Renderer) {
-	if terrainTileSheet == nil {
-		panic("Tilesheet not initialized")
-	}
-	r.Copy(terrainTileSheet, sdl.Rect((t.id%tileSheetWidth)*32, (t.id/tileSheetWidth)*32, tileWidth, tileHeight),
-		sdl.Rect(t.x, t.y, tileWidth, tileHeight))
-}
-
 type layer struct {
 	Base
+	tiles []tile
+	tex *sdl.Texture
 }
 
-func newLayer() *layer {
-	l := &layer{}
+func newLayer(ctx *sdl.Context) (*layer, error) {
+	tex, err := ctx.GetTexture(tileSheetFile)
+	if err != nil {
+		return nil, err
+	}
+	l := &layer{tex: tex}
 	for i := 0; i < 32; i++ {
 		for j := 0; j < 24; j++ {
-			l.AddChild(&tile{
+			l.tiles = append(l.tiles, tile{
 				x:  i * tileWidth,
 				y:  j * tileHeight,
 				id: int(rand.Int31()%4), // TODO: load from somewhere
 			})
 		}
 	}
-	return l
+	return l, nil
 }
+
+func (l *layer) Draw(r *sdl.Renderer) {
+	for _, t := range l.tiles {
+		r.Copy(l.tex, sdl.Rect((t.id%tileSheetWidth)*32, (t.id/tileSheetWidth)*32, tileWidth, tileHeight),
+			sdl.Rect(t.x, t.y, tileWidth, tileHeight))
+	}
+}
+
 
 type Terrain struct {
 	Base
 }
 
-func NewTerrain() *Terrain {
+func NewTerrain(ctx *sdl.Context) (*Terrain, error) {
 	t := &Terrain{}
-	t.AddChild(newLayer())
-	return t
+	l, err := newLayer(ctx)
+	if err != nil {
+		return nil, err
+	}
+	t.AddChild(l)
+	return t, nil
 }
 
-func InitTerrainTextures(r *sdl.Renderer) error {
-	if terrainTileSheet == nil {
-		t, err := r.LoadImage(tileSheetFile)
-		if err != nil {
-			return err
-		}
-		terrainTileSheet = t
-	}
-	return nil
-}

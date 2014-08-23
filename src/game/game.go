@@ -14,29 +14,43 @@ const (
 
 type Game struct {
 	Base
+	ctx *sdl.Context
 	t0     time.Time
 	ticker *time.Ticker
 
 	player *Player
 }
 
-func NewGame(r *sdl.Renderer) *Game {
-	// Load some initial stuff
+func NewGame(ctx *sdl.Context) (*Game, error) {
+	p, err  := NewPlayer(ctx)
+	if err != nil {
+		return nil, err
+	}
+	t, err := NewTerrain(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
 	g := &Game{
+		ctx: ctx,
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
-		player: NewPlayer(),
+		player: p,
 	}
-	g.AddChild(NewTerrain())
-	g.AddChild(g.player)
+	g.AddChild(t)
+	g.AddChild(p)
 	go g.tickLoop()
-	return g
+	return g, nil
 }
 
 func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
 		g.Update(t.Sub(g.t0))
 	}
+}
+
+func (g *Game) Draw() {
+	g.Base.Draw(g.ctx.Renderer)
 }
 
 func (g *Game) Destroy() {
@@ -62,12 +76,3 @@ func (g *Game) HandleKey(k uint32) error {
 	return nil
 }
 
-func InitAll(ctx *sdl.Context) error {
-	if err := InitPlayerTexture(ctx.Renderer); err != nil {
-		return err
-	}
-	if err := InitTerrainTextures(ctx.Renderer); err != nil {
-		return err
-	}
-	return nil
-}

@@ -38,6 +38,7 @@ func Rect(x, y, w, h int) C.SDL_Rect {
 type Context struct {
 	*Window
 	*Renderer
+	*TextureManager
 }
 
 // NewContext creates a Context referring to a new window with a given title and
@@ -64,6 +65,7 @@ func NewContext(title string, width, height int) (*Context, error) {
 	ctx := &Context{
 		Window:   w,
 		Renderer: r,
+		TextureManager: NewTextureManager(r),
 	}
 	ctx.Renderer.SetDrawColor(BlackColor)
 	return ctx, nil
