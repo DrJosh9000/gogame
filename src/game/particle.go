@@ -12,9 +12,9 @@ type Particle struct {
 
 func (p *Particle) Update(t time.Duration) {
 	// TODO: implement
-	
+
 	p.x += (rand.Int31() % 5) - 2
 	p.y += rand.Int31() % 5
-	
+
 	p.Base.Update(t)
 }

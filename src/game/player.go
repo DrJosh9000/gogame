@@ -2,12 +2,12 @@ package game
 
 import (
 	"time"
-	
+
 	"sdl"
 )
 
 const (
-	textureSpacepersonFile = "assets/spacepsn.png"
+	textureSpacepersonFile    = "assets/spacepsn.png"
 	playerWidth, playerHeight = 32, 32
 )
 
@@ -18,11 +18,11 @@ var (
 type Player struct {
 	Base
 	x, y int
-	tex *sdl.Texture
+	tex  *sdl.Texture
 }
 
 func NewPlayer() *Player {
-	return &Player {tex: textureSpaceperson}
+	return &Player{tex: textureSpaceperson}
 }
 
 func (p *Player) Draw(r *sdl.Renderer) {
@@ -34,10 +34,9 @@ func (p *Player) Draw(r *sdl.Renderer) {
 
 func (p *Player) Update(t time.Duration) {
 	// TODO: implement
-	
+
 	p.Base.Update(t)
 }
-
 
 func InitPlayerTexture(r *sdl.Renderer) error {
 	if textureSpaceperson == nil {

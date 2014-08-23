@@ -3,30 +3,31 @@ package game
 
 import (
 	"time"
-	
+
 	"sdl"
 )
 
 const (
 	gameTickerDuration = 10 * time.Millisecond
 )
+
 type Game struct {
 	Base
-	t0 time.Time
+	t0     time.Time
 	ticker *time.Ticker
-		
+
 	player *Player
 }
 
 func NewGame(r *sdl.Renderer) *Game {
 	// Load some initial stuff
-	g := &Game {
-		t0: time.Now(),
+	g := &Game{
+		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: NewPlayer(),
 	}
-	g.AddChild(g.player)
 	g.AddChild(NewTerrain())
+	g.AddChild(g.player)
 	go g.tickLoop()
 	return g
 }
