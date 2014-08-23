@@ -54,7 +54,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
 		dt := t.Sub(g.t0)
-		g.player.Ticker <- dt
+		g.player.Updater <- dt
 	}
 }
 

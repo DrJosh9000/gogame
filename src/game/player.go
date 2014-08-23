@@ -3,7 +3,6 @@ package game
 import (
 	//"fmt"
 	"math"
-	"math/rand"
 	"time"
 
 	"sdl"
@@ -56,7 +55,7 @@ type Player struct {
 	lastUpdate time.Duration
 	
 	Controller chan Control
-	Ticker chan time.Duration
+	Updater chan time.Duration
 	
 	// All struct elements below should be controlled only by the life goroutine.
 	facing Facing
@@ -72,11 +71,13 @@ func NewPlayer(ctx *sdl.Context) (*Player, error) {
 		return nil, err
 	}
 	p := &Player{
-		fx:   float64(rand.Int31() % (1024 - playerWidth)),
-		fy:   float64(rand.Int31() % (768 - playerHeight)),
+		fx:   64,
+		fy:   768-64,
+		facing: Right,
+		anim: Standing,
 		tex: tex,
 		Controller: make(chan Control),
-		Ticker: make(chan time.Duration),
+		Updater: make(chan time.Duration),
 	}
 	go p.life()
 	return p, nil
@@ -96,6 +97,11 @@ func (p *Player) Draw(r *sdl.Renderer) error {
 			sdl.Rect(p.x, p.y, playerWidth, playerHeight), 0, nil, sdl.FlipHorizontal)
 	}
 	return nil
+}
+
+func (p *Player) Destroy() {
+	close(p.Controller)
+	close(p.Updater)
 }
 
 func (p *Player) update(t time.Duration) {
@@ -130,58 +136,62 @@ func (p *Player) update(t time.Duration) {
 	p.lastUpdate = t
 }
 
+func (p *Player) control(ctl Control) {
+	switch ctl {
+	case Quit:
+		return
+	case StartWalkLeft:
+		switch p.anim {
+		case Standing, Walking:
+			p.anim = Walking
+			p.facing = Left
+			p.wx = -playerWalkSpeed
+		}
+	case StopWalkLeft:
+		if p.anim == Walking {
+			p.anim = Standing
+			p.wx = 0
+		}
+	case StartWalkRight:
+		switch p.anim {
+		case Standing, Walking:
+			p.anim = Walking
+			p.facing = Right
+			p.wx = playerWalkSpeed
+		}
+	case StopWalkRight:
+		if p.anim == Walking {
+			p.anim = Standing
+			p.wx = 0
+		}
+	case StartJump:
+		switch p.anim {
+		case Standing, Walking:
+			p.anim = Jumping
+		}
+	case StopJump:
+		if p.anim == Jumping {
+			p.anim = Falling
+			p.dy = playerJumpSpeed
+			p.ddy = playerGravity
+		}
+	case Land:
+		if p.anim == Falling {
+			p.anim = Standing
+			p.dy = 0
+			p.ddy = 0
+		}
+	default:
+		// TODO: more actions
+	}
+}
+
 func (p *Player) life() {
 	for {
 		select {
-		case ctl := <-p.Controller:
-			switch ctl {
-			case Quit:
-				return
-			case StartWalkLeft:
-				switch p.anim {
-				case Standing, Walking:
-					p.anim = Walking
-					p.facing = Left
-					p.wx = -playerWalkSpeed
-				}
-			case StopWalkLeft:
-				if p.anim == Walking {
-					p.anim = Standing
-					p.wx = 0
-				}
-			case StartWalkRight:
-				switch p.anim {
-				case Standing, Walking:
-					p.anim = Walking
-					p.facing = Right
-					p.wx = playerWalkSpeed
-				}
-			case StopWalkRight:
-				if p.anim == Walking {
-					p.anim = Standing
-					p.wx = 0
-				}
-			case StartJump:
-				switch p.anim {
-				case Standing, Walking:
-					p.anim = Jumping
-				}
-			case StopJump:
-				if p.anim == Jumping {
-					p.anim = Falling
-					p.dy = playerJumpSpeed
-					p.ddy = playerGravity
-				}
-			case Land:
-				if p.anim == Falling {
-					p.anim = Standing
-					p.dy = 0
-					p.ddy = 0
-				}
-			default:
-				// TODO: more actions
-			}
-		case t := <-p.Ticker:
+		case c := <-p.Controller:
+			p.control(c)
+		case t := <-p.Updater:
 			p.update(t)
 		}
 	}
