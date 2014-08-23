@@ -1,8 +1,6 @@
 package game
 
 import (
-	"math/rand"
-
 	"sdl"
 )
 
@@ -36,7 +34,7 @@ func newLayer(ctx *sdl.Context) (*layer, error) {
 			l.tiles = append(l.tiles, tile{
 				x:  i * tileWidth,
 				y:  j * tileHeight,
-				id: int(rand.Int31()%4), // TODO: load from somewhere
+				id: 1, // TODO: load from somewhere
 			})
 		}
 	}
@@ -49,7 +47,6 @@ func (l *layer) Draw(r *sdl.Renderer) {
 			sdl.Rect(t.x, t.y, tileWidth, tileHeight))
 	}
 }
-
 
 type Terrain struct {
 	Base
@@ -64,4 +61,3 @@ func NewTerrain(ctx *sdl.Context) (*Terrain, error) {
 	t.AddChild(l)
 	return t, nil
 }
-

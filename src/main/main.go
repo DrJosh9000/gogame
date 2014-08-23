@@ -20,8 +20,6 @@ var (
 	quitting = errors.New("quitting")
 )
 
-
-
 func main() {
 	ctx, err := sdl.NewContext(gameName, defaultWidth, defaultHeight)
 	if err != nil {
@@ -60,7 +58,7 @@ func main() {
 			return
 		}
 		r.Clear()
-		g.Draw()
+		g.Draw(r)
 		r.Present()
 		sdl.Delay(1)
 	}

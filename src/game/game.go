@@ -49,10 +49,6 @@ func (g *Game) tickLoop() {
 	}
 }
 
-func (g *Game) Draw() {
-	g.Base.Draw(g.ctx.Renderer)
-}
-
 func (g *Game) Destroy() {
 	g.ticker.Stop()
 	g.Base.Destroy()
