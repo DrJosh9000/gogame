@@ -50,24 +50,36 @@ func (g *Game) tickLoop() {
 }
 
 func (g *Game) Destroy() {
+	g.player.Controller <- Quit
 	g.ticker.Stop()
 	g.Base.Destroy()
 }
 
-func (g *Game) HandleKey(k uint32) error {
-	switch k {
-	case ' ':
-		fmt.Println("jump")
-	case 'w':
-		fmt.Println("up")
-	case 'a':
-		fmt.Println("left")
-	case 's':
-		fmt.Println("down")
-	case 'd':
-		fmt.Println("right")
-	default:
-		fmt.Println("other")
+func (g *Game) HandleEvent(ev interface{}) error {
+	switch v := ev.(type) {
+	case sdl.KeyEvent:
+		switch v.KeyCode {
+			case ' ':
+				fmt.Println("jump")
+			case 'w':
+				fmt.Println("up")
+			case 'a':
+				if v.Type == sdl.KeyDown {
+					g.player.Controller <- StartWalkLeft
+				} else {
+					g.player.Controller <- StopWalkLeft
+				}
+			case 's':
+				fmt.Println("down")
+			case 'd':
+				if v.Type == sdl.KeyDown {
+					g.player.Controller <- StartWalkRight
+				} else {
+					g.player.Controller <- StopWalkRight
+				}
+			default:
+				fmt.Println("other")
+			}
 	}
 	return nil
 }

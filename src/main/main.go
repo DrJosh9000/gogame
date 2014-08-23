@@ -44,17 +44,13 @@ func main() {
 			case sdl.QuitEvent:
 				return quitting
 			case sdl.KeyEvent:
-				if v.Type == sdl.KeyUp {
-					switch v.KeyCode {
-					case 'q':
-						return quitting
-					default:
-						// Get the game to handle all other keys
-						if g != nil {
-							return g.HandleKey(v.KeyCode)
-						}
-					}
+				if v.Type == sdl.KeyUp && v.KeyCode == 'q' {
+					return quitting
 				}
+			}
+			// Get the game to handle all other keys
+			if g != nil {
+				return g.HandleEvent(e)
 			}
 			return nil
 		}); err == quitting {
