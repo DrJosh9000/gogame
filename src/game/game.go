@@ -60,7 +60,11 @@ func (g *Game) HandleEvent(ev interface{}) error {
 	case sdl.KeyEvent:
 		switch v.KeyCode {
 			case ' ':
-				fmt.Println("jump")
+				if v.Type == sdl.KeyDown {
+					g.player.Controller <- StartJump
+				} else {
+					g.player.Controller <- StopJump
+				}
 			case 'w':
 				fmt.Println("up")
 			case 'a':
@@ -77,6 +81,8 @@ func (g *Game) HandleEvent(ev interface{}) error {
 				} else {
 					g.player.Controller <- StopWalkRight
 				}
+			case 'e':
+				fmt.Println("use")
 			default:
 				fmt.Println("other")
 			}

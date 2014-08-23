@@ -5,7 +5,6 @@ import (
 )
 
 const (
-	// TODO: replace with bigger sheet
 	tileSheetFile                   = "assets/tiles.png"
 	tileWidth, tileHeight           = 32, 32
 	tileSheetWidth, tileSheetHeight = 8, 8
@@ -23,18 +22,18 @@ type layer struct {
 	tex   *sdl.Texture
 }
 
-func newLayer(ctx *sdl.Context) (*layer, error) {
+func newLayer(ctx *sdl.Context, m LevelMap) (*layer, error) {
 	tex, err := ctx.GetTexture(tileSheetFile)
 	if err != nil {
 		return nil, err
 	}
 	l := &layer{tex: tex}
-	for i := 0; i < 32; i++ {
-		for j := 0; j < 24; j++ {
+	for i := 0; i < len(m); i++ {
+		for j := 0; j < len(m[i]); j++ {
 			l.tiles = append(l.tiles, tile{
-				x:  i * tileWidth,
-				y:  j * tileHeight,
-				id: 1, // TODO: load from somewhere
+				x:  j * tileWidth,
+				y:  i * tileHeight,
+				id: m[i][j].index,
 			})
 		}
 	}
@@ -58,7 +57,11 @@ type Terrain struct {
 
 func NewTerrain(ctx *sdl.Context) (*Terrain, error) {
 	t := &Terrain{}
-	l, err := newLayer(ctx)
+	m, err := LoadMap("assets/level0.txt")
+	if err != nil {
+		return nil, err
+	}
+	l, err := newLayer(ctx, m)
 	if err != nil {
 		return nil, err
 	}
