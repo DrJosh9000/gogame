@@ -9,7 +9,7 @@ const (
 	gameTickerDuration = 10 * time.Millisecond
 )
 type Game struct {
-	*Base
+	Base
 	t0 time.Time
 	ticker *time.Ticker
 	
@@ -18,7 +18,6 @@ type Game struct {
 
 func NewGame() *Game {
 	g := &Game {
-		Base: &Base{},
 		t0: time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: NewPlayer(),

@@ -5,19 +5,15 @@ import (
 )
 
 type Player struct {
-	*Base
+	Base
 }
 
 func NewPlayer() *Player {
-	return &Player {
-		&Base{},
-	}
+	return &Player {	}
 }
 
 func (p *Player) Update(t time.Duration) {
 	// TODO: implement
-}
-
-func (p *Player) Destroy() {
-	// TODO: implement
+	
+	p.Base.Update(t)
 }

@@ -31,7 +31,6 @@ func (b *Base) Update(t time.Duration) {
 	}
 }
 
-
 func (b *Base) Destroy() {
 	for _, c := range b.children {
 		if c != nil {
