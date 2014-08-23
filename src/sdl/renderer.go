@@ -106,5 +106,3 @@ func (r *Renderer) LoadImage(path string) (*Texture, error) {
 	defer s.Free()
 	return r.TextureFromSurface(s)
 }
-
-

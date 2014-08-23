@@ -6,7 +6,7 @@ package main
 
 import (
 	"errors"
-	
+
 	"game"
 	"sdl"
 )
@@ -35,7 +35,7 @@ func main() {
 	defer g.Destroy()
 
 	for {
-		err := sdl.HandleEvents(func (e interface{}) error {
+		if err := sdl.HandleEvents(func(e interface{}) error {
 			switch v := e.(type) {
 			case sdl.QuitEvent:
 				return quitting
@@ -45,7 +45,7 @@ func main() {
 					case 'q':
 						return quitting
 					default:
-						// Get the game to handle all other events
+						// Get the game to handle all other keys
 						if g != nil {
 							return g.HandleKey(v.KeyCode)
 						}
@@ -53,8 +53,7 @@ func main() {
 				}
 			}
 			return nil
-		})
-		if err == quitting {
+		}); err == quitting {
 			return
 		}
 		if err := r.Clear(); err != nil {

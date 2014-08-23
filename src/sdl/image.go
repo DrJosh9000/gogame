@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	if e := C.IMG_Init(C.IMG_INIT_PNG); e & C.IMG_INIT_PNG == 0 {
+	if e := C.IMG_Init(C.IMG_INIT_PNG); e&C.IMG_INIT_PNG == 0 {
 		panic(fmt.Sprintf("Unable to init PNG support with SDL_image (got init mask %x)", e))
 	}
 }

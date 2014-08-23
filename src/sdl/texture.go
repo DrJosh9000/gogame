@@ -24,16 +24,15 @@ func (t *Texture) Destroy() {
 	t.texture = nil
 }
 
-
 type TextureManager struct {
 	assets map[string]*Texture
-	r *Renderer
+	r      *Renderer
 }
 
 func NewTextureManager(r *Renderer) *TextureManager {
 	return &TextureManager{
 		assets: make(map[string]*Texture),
-		r: r,
+		r:      r,
 	}
 }
 

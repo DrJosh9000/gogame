@@ -14,7 +14,7 @@ const (
 
 type Game struct {
 	Base
-	ctx *sdl.Context
+	ctx    *sdl.Context
 	t0     time.Time
 	ticker *time.Ticker
 
@@ -22,7 +22,7 @@ type Game struct {
 }
 
 func NewGame(ctx *sdl.Context) (*Game, error) {
-	p, err  := NewPlayer(ctx)
+	p, err := NewPlayer(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -30,9 +30,9 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	g := &Game{
-		ctx: ctx,
+		ctx:    ctx,
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
@@ -71,4 +71,3 @@ func (g *Game) HandleKey(k uint32) error {
 	}
 	return nil
 }
-

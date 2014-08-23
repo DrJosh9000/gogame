@@ -47,7 +47,7 @@ func NewContext(title string, width, height int) (*Context, error) {
 	if errno := C.SDL_Init(C.kInitEverything); errno < 0 {
 		return nil, fmt.Errorf("unable to SDL_init(everything): %d %s", errno, Err())
 	}
-	
+
 	one := C.CString("1")
 	defer C.free(unsafe.Pointer(one))
 	if errno := C.SDL_SetHint(C.kHintRenderScaleQuality, one); errno == 0 {
@@ -63,8 +63,8 @@ func NewContext(title string, width, height int) (*Context, error) {
 		return nil, err
 	}
 	ctx := &Context{
-		Window:   w,
-		Renderer: r,
+		Window:         w,
+		Renderer:       r,
 		TextureManager: NewTextureManager(r),
 	}
 	ctx.Renderer.SetDrawColor(BlackColor)

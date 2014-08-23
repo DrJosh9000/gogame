@@ -20,7 +20,7 @@ type tile struct {
 type layer struct {
 	Base
 	tiles []tile
-	tex *sdl.Texture
+	tex   *sdl.Texture
 }
 
 func newLayer(ctx *sdl.Context) (*layer, error) {

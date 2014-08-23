@@ -23,8 +23,8 @@ func NewPlayer(ctx *sdl.Context) (*Player, error) {
 		return nil, err
 	}
 	return &Player{
-		x: int(rand.Int31() % (1024-playerWidth)),
-		y: int(rand.Int31() % (768-playerHeight)),
+		x:   int(rand.Int31() % (1024 - playerWidth)),
+		y:   int(rand.Int31() % (768 - playerHeight)),
 		tex: tex,
 	}, nil
 }
@@ -32,4 +32,3 @@ func NewPlayer(ctx *sdl.Context) (*Player, error) {
 func (p *Player) Draw(r *sdl.Renderer) error {
 	return r.Copy(p.tex, sdl.Rect(0, 0, playerWidth, playerHeight), sdl.Rect(p.x, p.y, playerWidth, playerHeight))
 }
-
