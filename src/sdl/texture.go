@@ -18,5 +18,8 @@ func (t *Texture) t() *C.SDL_Texture {
 }
 
 func (t *Texture) Destroy() {
-	C.SDL_DestroyTexture(t.t())
+	if t.t() != nil {
+		C.SDL_DestroyTexture(t.t())
+	}
+	t.texture = nil
 }

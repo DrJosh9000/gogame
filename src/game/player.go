@@ -29,7 +29,7 @@ func (p *Player) Draw(r *sdl.Renderer) {
 	if p.tex == nil {
 		panic("player texture not initialised")
 	}
-	r.Copy(p.tex, nil, sdl.Rect(p.x, p.y, playerWidth, playerHeight))
+	r.Copy(p.tex, sdl.Rect(0, 0, playerWidth, playerHeight), sdl.Rect(p.x, p.y, playerWidth, playerHeight))
 }
 
 func (p *Player) Update(t time.Duration) {

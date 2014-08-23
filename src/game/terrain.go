@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math/rand"
 	"time"
 
 	"sdl"
@@ -8,9 +9,9 @@ import (
 
 const (
 	// TODO: replace with bigger sheet
-	tileSheetFile                   = "assets/default.png"
+	tileSheetFile                   = "assets/tiles.png"
 	tileWidth, tileHeight           = 32, 32
-	tileSheetWidth, tileSheetHeight = 1, 1
+	tileSheetWidth, tileSheetHeight = 8, 8
 )
 
 var (
@@ -48,7 +49,7 @@ func newLayer() *layer {
 			l.AddChild(&tile{
 				x:  i * tileWidth,
 				y:  j * tileHeight,
-				id: 0, // TODO: load from somewhere
+				id: int(rand.Int31()%4), // TODO: load from somewhere
 			})
 		}
 	}
@@ -67,7 +68,7 @@ func NewTerrain() *Terrain {
 
 func InitTerrainTextures(r *sdl.Renderer) error {
 	if terrainTileSheet == nil {
-		t, err := r.LoadImage("assets/default.png")
+		t, err := r.LoadImage(tileSheetFile)
 		if err != nil {
 			return err
 		}

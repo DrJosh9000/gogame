@@ -53,4 +53,5 @@ func (w *Window) Destroy() {
 	if w.w() != nil {
 		C.SDL_DestroyWindow(w.w())
 	}
+	w.window = nil
 }

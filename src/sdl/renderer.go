@@ -49,18 +49,19 @@ func (r *Renderer) Present() {
 	C.SDL_RenderPresent(r.r())
 }
 
-func (r *Renderer) Copy(t *Texture, src, dst *C.SDL_Rect) {
-	C.SDL_RenderCopy(r.r(), t.t(), src, dst)
+func (r *Renderer) Copy(t *Texture, src, dst C.SDL_Rect) {
+	C.SDL_RenderCopy(r.r(), t.t(), &src, &dst)
 }
 
-func (r *Renderer) CopyEx(t *Texture, src, dst *C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) {
-	C.SDL_RenderCopyEx(r.r(), t.t(), src, dst, C.double(angle), center, C.SDL_RendererFlip(flip))
+func (r *Renderer) CopyEx(t *Texture, src, dst C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) {
+	C.SDL_RenderCopyEx(r.r(), t.t(), &src, &dst, C.double(angle), center, C.SDL_RendererFlip(flip))
 }
 
 func (r *Renderer) Destroy() {
 	if r.r() != nil {
 		C.SDL_DestroyRenderer(r.r())
 	}
+	r.renderer = nil
 }
 
 func (r *Renderer) SetDrawColor(c Color) {

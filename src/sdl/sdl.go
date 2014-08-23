@@ -31,8 +31,8 @@ type Color struct {
 
 var BlackColor = Color{0x00, 0x00, 0x00, 0xff}
 
-func Rect(x, y, w, h int) *C.SDL_Rect {
-	return &C.SDL_Rect{C.int(x), C.int(y), C.int(w), C.int(h)}
+func Rect(x, y, w, h int) C.SDL_Rect {
+	return C.SDL_Rect{C.int(x), C.int(y), C.int(w), C.int(h)}
 }
 
 type Context struct {

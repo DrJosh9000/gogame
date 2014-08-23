@@ -2,6 +2,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"sdl"
@@ -46,16 +47,22 @@ func (g *Game) Destroy() {
 func (g *Game) HandleKey(k uint32) error {
 	switch k {
 	case ' ':
+		fmt.Println("jump")
 		return nil
 	case 'w':
+		fmt.Println("up")
 		return nil
 	case 'a':
+		fmt.Println("left")
 		return nil
 	case 's':
+		fmt.Println("down")
 		return nil
 	case 'd':
+		fmt.Println("right")
 		return nil
 	default:
+		fmt.Println("other")
 		return nil
 	}
 	return nil
