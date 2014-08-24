@@ -10,7 +10,11 @@ import (
 
 const (
 	gameTickerDuration = 10 * time.Millisecond
+	
+	level0File = "assets/level0.txt"
 )
+
+var gameInstance *Game
 
 type Game struct {
 	Base
@@ -22,13 +26,17 @@ type Game struct {
 	level LevelMap
 }
 
-func NewGame(ctx *sdl.Context) (*Game, error) {
+func GetGame(ctx *sdl.Context) (*Game, error) {
+	if gameInstance != nil {
+		return gameInstance, nil
+	}
+	
 	p, err := NewPlayer(ctx)
 	if err != nil {
 		return nil, err
 	}
 	
-	m, err := LoadMap("assets/level0.txt")
+	m, err := LoadMap(level0File)
 	if err != nil {
 		return nil, err
 	}
@@ -38,17 +46,17 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		return nil, err
 	}
 
-	g := &Game{
+	gameInstance = &Game{
 		ctx:    ctx,
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
 		level:  m,
 	}
-	g.AddChild(t)
-	g.AddChild(p)
-	go g.tickLoop()
-	return g, nil
+	gameInstance.AddChild(t)
+	gameInstance.AddChild(p)
+	go gameInstance.tickLoop()
+	return gameInstance, nil
 }
 
 func (g *Game) tickLoop() {

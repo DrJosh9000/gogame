@@ -13,11 +13,11 @@ const (
 	playerFramesWidth  = 4
 	playerWidth, playerHeight = 32, 32
 	
-	playerWalkSpeed = 256 // pixels per second?
+	playerWalkSpeed = 512 // pixels per second?
 	playerJumpSpeed = -512
 	playerGravity = 2048
 	
-	playerTau = 0.2
+	playerTau = 0.1
 )
 
 type Facing int
@@ -32,6 +32,7 @@ const (
 	Walking
 	Jumping
 	Falling
+	Floating
 )
 
 type Control int
@@ -114,6 +115,11 @@ func (p *Player) update(t time.Duration) {
 	switch p.anim {
 	case Walking:
 		p.frame = (int(2 * t / time.Millisecond) % 1000) / 250
+		fallthrough
+	default:
+		if p.anim != Walking {
+			p.frame = 0
+		}
 		tau := playerTau * math.Exp(delta)
 		p.dx = tau * p.wx + (1-tau) * p.dx
 		p.dy = tau * p.wy + (1-tau) * p.dy
@@ -121,19 +127,49 @@ func (p *Player) update(t time.Duration) {
 		p.frame = 0
 		p.dx += p.ddx * delta
 		p.dy += p.ddy * delta
-	default:
-		p.frame = 0
-		tau := playerTau * math.Exp(delta)
-		p.dx = tau * p.wx + (1-tau) * p.dx
-		p.dy = tau * p.wy + (1-tau) * p.dy
+
 	}
 
 	// FISIXX
 	p.fx += p.dx * delta
 	p.fy += p.dy * delta
-	p.x = int(p.fx)
-	p.y = int(p.fy)
+	nx, ny := int(p.fx), int(p.fy)
 	p.lastUpdate = t
+	
+	switch p.anim {
+	case Standing, Walking:
+		if !gameInstance.level.QueryPoint(nx, ny+32).solid && !gameInstance.level.QueryPoint(nx+31, ny+32).solid {
+				p.anim = Falling
+				p.ddy = playerGravity
+		}
+	case Falling:
+		if tile := gameInstance.level.QueryPoint(nx, ny+32); tile.solid {
+				p.anim = Standing
+				ny = (ny/tileHeight)*tileHeight
+				p.fy = float64(ny)
+				p.dx, p.dy = 0, 0
+				p.ddy = 0
+		}
+		if tile := gameInstance.level.QueryPoint(nx+31, ny+32); tile.solid {
+				p.anim = Standing
+				ny = (ny/tileHeight)*tileHeight
+				p.fy = float64(ny)
+				p.dx, p.dy = 0, 0
+				p.ddy = 0
+		}
+	}
+	if tile := gameInstance.level.QueryPoint(nx, ny+31); tile.solid {
+			nx = ((nx/tileWidth)+1)*tileWidth
+			p.fx, p.fy = float64(nx), float64(ny)
+			p.dx = 0
+	}
+	if tile := gameInstance.level.QueryPoint(nx+31, ny+31); tile.solid {
+			nx = (nx/tileWidth)*tileWidth
+			p.fx, p.fy = float64(nx), float64(ny)
+			p.dx = 0
+	}
+	
+	p.x, p.y = nx, ny
 }
 
 func (p *Player) control(ctl Control) bool {
@@ -150,8 +186,8 @@ func (p *Player) control(ctl Control) bool {
 	case StopWalkLeft:
 		if p.anim == Walking {
 			p.anim = Standing
-			p.wx = 0
 		}
+		p.wx = 0
 	case StartWalkRight:
 		switch p.anim {
 		case Standing, Walking:
@@ -162,8 +198,8 @@ func (p *Player) control(ctl Control) bool {
 	case StopWalkRight:
 		if p.anim == Walking {
 			p.anim = Standing
-			p.wx = 0
 		}
+		p.wx = 0
 	case StartJump:
 		switch p.anim {
 		case Standing, Walking:

@@ -20,6 +20,7 @@ var (
 		'#': {index: 2, solid: true},
 		'^': {index: 3, solid: true, deadly: true},
 	}
+	outOfBounds = TileProps{solid: true}
 	
 	loadedMaps = make(map[string]LevelMap)
 )
@@ -53,4 +54,12 @@ func LoadMap(name string) (LevelMap, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (l LevelMap) QueryPoint(x, y int) TileProps {
+	tx, ty := x/tileWidth, y/tileHeight
+	if ty < 0 || ty >= len(l) || tx < 0 || tx >= len(l[ty]) {
+		return outOfBounds
+	}
+	return l[ty][tx]
 }
