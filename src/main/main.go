@@ -1,7 +1,5 @@
-// "gogame"
-// Something that might turn into a game.
-// Is currently my own custom set of bindings for SDL2.
-// On Mac. Yay.
+// Press E To Teleport (working title) - game(ish) made for Ludum Dare 30
+// Programmer, etc: @DrJosh9000
 package main
 
 import (
@@ -14,7 +12,7 @@ import (
 
 const (
 	defaultWidth, defaultHeight = 1024, 768
-	gameName                    = "Connected Worlds"
+	gameName                    = "Press E to Teleport"
 )
 
 var (

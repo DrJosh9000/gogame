@@ -63,7 +63,7 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	ex.x, ex.y = tileWidth * m0.ExitX, tileHeight * m0.ExitY
+	ex.x, ex.y = tileWidth * m0.ExitX, tileHeight * m0.ExitY - 16 // hax
 
 	g := &Game{
 		ctx:    ctx,
@@ -77,7 +77,7 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 	}
 	gameInstance = g
 	p.x, p.y = tileWidth * m0.StartX, tileHeight * m0.StartY
-	g.AddChild(ex)
+	t0.AddChild(ex)
 	g.AddChild(p)
 	go g.tickLoop()
 
