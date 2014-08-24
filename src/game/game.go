@@ -58,26 +58,18 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	
-	ex, err := NewExit(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ex.x, ex.y = tileWidth * m0.ExitX, tileHeight * m0.ExitY - 16 // hax
 
 	g := &Game{
 		ctx:    ctx,
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
-		exit: ex,
 		levels: [2]*Level{m0, m1},
 		terrains: [2]*Terrain{t0, t1},
 		currentLevel: 0,
 	}
 	gameInstance = g
 	p.x, p.y = tileWidth * m0.StartX, tileHeight * m0.StartY
-	t0.AddChild(ex)
 	g.AddChild(p)
 	go g.tickLoop()
 
@@ -89,17 +81,21 @@ func (g *Game) tickLoop() {
 		//dt := t.Sub(g.t0)
 		//g.player.Updater <- dt
 		
-		// If the player is near the door, open it;
-		// If the player is not near the door, close it.
-		if g.exit.DoorState == DoorStateClosed &&
-			g.player.x > g.exit.x - 200 && g.player.x < g.exit.x + 200 &&
-		    g.player.y > g.exit.y - 200 && g.player.y < g.exit.y + 200 {
-			g.exit.Controller <- DoorStateOpen
-		}
-		if g.exit.DoorState == DoorStateOpen && (
-			g.player.x <= g.exit.x - 200 || g.player.x >= g.exit.x + 200 ||
-			g.player.y <= g.exit.y - 200 || g.player.y >= g.exit.y + 200) {
-			g.exit.Controller <- DoorStateClosed
+		for _, ter := range g.terrains {
+			if ter.exit != nil {
+				// If the player is near the door, open it;
+				// If the player is not near the door, close it.
+				if ter.exit.DoorState == DoorStateClosed &&
+					g.player.x > ter.exit.x - 200 && g.player.x < ter.exit.x + 200 &&
+				    g.player.y > ter.exit.y - 200 && g.player.y < ter.exit.y + 200 {
+					ter.exit.Controller <- DoorStateOpen
+				}
+				if ter.exit.DoorState == DoorStateOpen && (
+					g.player.x <= ter.exit.x - 200 || g.player.x >= ter.exit.x + 200 ||
+					g.player.y <= ter.exit.y - 200 || g.player.y >= ter.exit.y + 200) {
+					ter.exit.Controller <- DoorStateClosed
+				}
+			}
 		}
 	}
 }

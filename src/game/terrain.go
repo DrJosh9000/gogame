@@ -55,6 +55,7 @@ func (l *layer) Draw(r *sdl.Renderer) error {
 
 type Terrain struct {
 	Base
+	exit *Exit
 }
 
 func NewTerrain(ctx *sdl.Context, lev *Level) (*Terrain, error) {
@@ -65,6 +66,16 @@ func NewTerrain(ctx *sdl.Context, lev *Level) (*Terrain, error) {
 			return nil, err
 		}
 		t.AddChild(l)
+	}
+	
+	if lev.HasExit {
+		e, err := NewExit(ctx)
+		if err != nil {
+			return nil, err
+		}
+		e.x, e.y = tileWidth * lev.ExitX, tileHeight * lev.ExitY - 16 // hax
+		t.exit = e
+		t.AddChild(e)
 	}
 	return t, nil
 }

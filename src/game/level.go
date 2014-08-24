@@ -17,6 +17,7 @@ type LevelLayer [][]TileProps
 type Level struct {
 	Map []LevelLayer
 	StartX, StartY int
+	HasExit bool
 	ExitX, ExitY int
 }
 
@@ -119,6 +120,7 @@ func LoadLevel(name string) (*Level, error) {
 				l.StartX = j
 				l.StartY = len(m)
 			case 'X':
+				l.HasExit = true
 				l.ExitX = j
 				l.ExitY = len(m)
 			}
