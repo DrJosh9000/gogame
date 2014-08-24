@@ -17,8 +17,9 @@ type LevelLayer [][]TileProps
 type Level []LevelLayer
 
 var (
+	transparentTile = TileProps{index: 0}
 	tileMap = map[byte]TileProps {
-		' ': {index: 0}, // transparent, don't even paint a tile.
+		' ': transparentTile,
 		'.': {index: 1}, // space panel
 		// 2: currently blank
 		's': {index: 3}, // space platform
@@ -50,6 +51,7 @@ var (
 		't': {index: 30, solid: false},
 		'^': {index: 31, solid: true, deadly: true},
 		'(': {index: 34},
+		'R': {index: 35, solid: false},
 		'Y': {index: 36, solid: false},
 		'T': {index: 37, solid: false},
 		')': {index: 38},
@@ -112,7 +114,7 @@ func LoadLevel(name string) (Level, error) {
 		// Ensure the row is the right length.
 		if len(r) < width {
 			for i:=len(r); i<width; i++ {
-				r = append(r, tileMap[' '])
+				r = append(r, transparentTile)
 			}
 		}
 		m = append(m, r)
