@@ -17,13 +17,22 @@ var (
 	tileMap = map[byte]TileProps {
 		' ': {index: 0},
 		'.': {index: 1},
-		'-': {index: 2},
-		'^': {index: 3, solid: true, deadly: true},
-		'+': {index: 4, solid: true},
-		'[': {index:5},
+		'a': {index: 2},
+		's': {index: 3},
+		'd': {index: 4},
+		'f': {index: 5},
+		'g': {index: 6},
+		'[': {index: 7},
 		'_': {index: 8},
-		'#': {index: 10, solid: true},
-		']': {index: 13},
+		'Z': {index: 9},
+		'z': {index: 10, solid:false},
+		'x': {index: 11, solid:true},
+		'c': {index: 12, solid:true},
+		'v': {index: 13, solid:true},
+		'b': {index: 14, solid:false},
+		']': {index: 15},
+		'+': {index: 22, solid: true},
+		'^': {index: 30, solid: true, deadly: true},
 	}
 	outOfBounds = TileProps{solid: true}
 	
