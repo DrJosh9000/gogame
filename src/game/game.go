@@ -91,8 +91,9 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 	if r.OffsetX > 0 {
 		r.OffsetX = 0
 	}
-	if r.OffsetX - 32 * 32 < -128 * 32 {
-		r.OffsetX = -128 * 32 + 32 * 32
+	// TODO: base on level size, pls
+	if r.OffsetX < -96 * tileWidth {
+		r.OffsetX = -96 * tileWidth
 	}
 	
 	if g.player.y + r.OffsetY > 576 {
@@ -104,11 +105,9 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 	if r.OffsetY < 0 {
 		r.OffsetY = 0
 	}
-	/*
-	if r.OffsetX - 32 * 32 < -128 * 32 {
-		r.OffsetX = -128 * 32 + 32 * 32
+	if r.OffsetY > 0 {
+		r.OffsetY = 0
 	}
-	*/
 	
 	// Draw current terrain
 	if err := g.terrains[g.currentLevel].Draw(r); err != nil {
