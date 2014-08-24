@@ -31,8 +31,21 @@ var (
 		'v': {index: 13, solid:true},
 		'b': {index: 14, solid:false},
 		']': {index: 15},
-		'+': {index: 22, solid: true},
-		'^': {index: 30, solid: true, deadly: true},
+		',': {index: 16},
+		'1': {index: 18},
+		'2': {index: 19},
+		'3': {index: 20},
+		'4': {index: 21},
+		'5': {index: 22},
+		'+': {index: 23, solid: true},
+		'#': {index: 24, solid: true},
+		'%': {index: 25, solid: true},
+		'q': {index: 26, solid: false},
+		'w': {index: 27, solid: true},
+		'e': {index: 28, solid: true},
+		'r': {index: 29, solid: true},
+		't': {index: 30, solid: false},
+		'^': {index: 31, solid: true, deadly: true},
 	}
 	outOfBounds = TileProps{solid: true}
 	
