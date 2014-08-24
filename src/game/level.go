@@ -20,14 +20,14 @@ var (
 	tileMap = map[byte]TileProps {
 		' ': {index: 0}, // transparent, don't even paint a tile.
 		'.': {index: 1}, // space panel
-		'a': {index: 2}, // space platform
-		's': {index: 3},
+		// 2: currently blank
+		's': {index: 3}, // space platform
 		'd': {index: 4},
 		'f': {index: 5},
 		'g': {index: 6}, // end space platform
 		'[': {index: 7},
 		'_': {index: 8},
-		'Z': {index: 9},
+		// 9: currently blank
 		'z': {index: 10, solid:false},
 		'x': {index: 11, solid:true},
 		'c': {index: 12, solid:true},
@@ -35,7 +35,7 @@ var (
 		'b': {index: 14, solid:false},
 		']': {index: 15},
 		',': {index: 16},
-		'1': {index: 18},
+		// 17, 18: currently blank
 		'2': {index: 19},
 		'3': {index: 20},
 		'4': {index: 21},
@@ -49,6 +49,10 @@ var (
 		'r': {index: 29, solid: true},
 		't': {index: 30, solid: false},
 		'^': {index: 31, solid: true, deadly: true},
+		'(': {index: 34},
+		'Y': {index: 36, solid: false},
+		'T': {index: 37, solid: false},
+		')': {index: 38},
 	}
 	outOfBounds = TileProps{solid: true}
 	
@@ -72,29 +76,31 @@ func LoadLevel(name string) (Level, error) {
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		line := sc.Text()
-		// Filter comments.
-		if line[0] == '#' {
-			continue
-		}
-		// ! = directive.
-		if line[0] == '!' {
-			w, err := strconv.ParseInt(line[1:], 10, 32)
-			if err != nil {
-				return nil, err
+		if len(line) > 0 {
+			// Filter comments.
+			if line[0] == '#' {
+				continue
 			}
-			width = int(w)
-			continue
+			// ! = directive.
+			if line[0] == '!' {
+				w, err := strconv.ParseInt(line[1:], 10, 32)
+				if err != nil {
+					return nil, err
+				}
+				width = int(w)
+				continue
+			}
+			// Braces delineate layers.
+			if line == "{" {
+				m = nil
+				continue
+			}
+			if line == "}" {
+				l = append(l, m)
+				continue
+			}
 		}
-		// Braces delineate layers.
-		if line == "{" {
-			m = nil
-			continue
-		}
-		if line == "}" {
-			l = append(l, m)
-			continue
-		}
-	
+		
 		var r []TileProps
 		for _, c := range []byte(line) {
 			t, ok := tileMap[c]
