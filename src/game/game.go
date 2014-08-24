@@ -91,7 +91,16 @@ func (g *Game) tickLoop() {
 		
 		// If the player is near the door, open it;
 		// If the player is not near the door, close it.
-		
+		if g.exit.DoorState == DoorStateClosed &&
+			g.player.x > g.exit.x - 200 && g.player.x < g.exit.x + 200 &&
+		    g.player.y > g.exit.y - 200 && g.player.y < g.exit.y + 200 {
+			g.exit.Controller <- DoorStateOpen
+		}
+		if g.exit.DoorState == DoorStateOpen && (
+			g.player.x <= g.exit.x - 200 || g.player.x >= g.exit.x + 200 ||
+			g.player.y <= g.exit.y - 200 || g.player.y >= g.exit.y + 200) {
+			g.exit.Controller <- DoorStateClosed
+		}
 	}
 }
 

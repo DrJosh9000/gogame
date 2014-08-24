@@ -47,6 +47,7 @@ func (e *Exit) Children() []Object {return nil}
 
 func (e *Exit) Destroy() {
 	e.Controller <- DoorStateQuit
+	close(e.Controller)
 	e.Updater.Stop()
 }
 
