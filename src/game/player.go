@@ -139,19 +139,19 @@ func (p *Player) update(t time.Duration) {
 	
 	switch p.anim {
 	case Standing, Walking:
-		if !gameInstance.level.IsPointSolid(nx, ny+32) && !gameInstance.level.IsPointSolid(nx+31, ny+32) {
+		if !gameInstance.Level().IsPointSolid(nx, ny+32) && !gameInstance.Level().IsPointSolid(nx+31, ny+32) {
 				p.anim = Falling
 				p.ddy = playerGravity
 		}
 	case Falling:
-		if gameInstance.level.IsPointSolid(nx, ny+32) {
+		if gameInstance.Level().IsPointSolid(nx, ny+32) {
 				p.anim = Standing
 				ny = (ny/tileHeight)*tileHeight
 				p.fy = float64(ny)
 				p.dy = 0
 				p.ddy = 0
 		}
-		if gameInstance.level.IsPointSolid(nx+31, ny+32) {
+		if gameInstance.Level().IsPointSolid(nx+31, ny+32) {
 				p.anim = Standing
 				ny = (ny/tileHeight)*tileHeight
 				p.fy = float64(ny)
@@ -159,12 +159,12 @@ func (p *Player) update(t time.Duration) {
 				p.ddy = 0
 		}
 	}
-	if gameInstance.level.IsPointSolid(nx, ny+31) {
+	if gameInstance.Level().IsPointSolid(nx, ny+31) {
 			nx = ((nx/tileWidth)+1)*tileWidth
 			p.fx, p.fy = float64(nx), float64(ny)
 			p.dx = 0
 	}
-	if gameInstance.level.IsPointSolid(nx+31, ny+31) {
+	if gameInstance.Level().IsPointSolid(nx+31, ny+31) {
 			nx = (nx/tileWidth)*tileWidth
 			p.fx, p.fy = float64(nx), float64(ny)
 			p.dx = 0
@@ -220,6 +220,9 @@ func (p *Player) control(ctl Control) bool {
 			p.dy = 0
 			p.ddy = 0
 		}
+	case Teleport:
+		p.anim = Falling
+		p.ddy = playerGravity
 	default:
 		// TODO: more actions
 	}

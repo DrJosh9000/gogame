@@ -13,6 +13,7 @@ const (
 	
 	level0File = "assets/level0.txt"
 	level1AFile = "assets/level1a.txt"
+	level1BFile = "assets/level1b.txt"
 )
 
 var gameInstance *Game
@@ -24,7 +25,9 @@ type Game struct {
 	ticker *time.Ticker
 
 	player *Player
-	level Level
+	levels [2]Level
+	terrains [2]*Terrain
+	currentLevel int
 }
 
 func GetGame(ctx *sdl.Context) (*Game, error) {
@@ -37,12 +40,20 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 		return nil, err
 	}
 	
-	m, err := LoadLevel(level1AFile)
+	m0, err := LoadLevel(level1AFile)
+	if err != nil {
+		return nil, err
+	}
+	m1, err := LoadLevel(level1BFile)
 	if err != nil {
 		return nil, err
 	}
 	
-	t, err := NewTerrain(ctx, m)
+	t0, err := NewTerrain(ctx, m0)
+	if err != nil {
+		return nil, err
+	}
+	t1, err := NewTerrain(ctx, m1)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +63,10 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
-		level:  m,
+		levels: [2]Level{m0, m1},
+		terrains: [2]*Terrain{t0, t1},
+		currentLevel: 0,
 	}
-	gameInstance.AddChild(t)
 	gameInstance.AddChild(p)
 	go gameInstance.tickLoop()
 	return gameInstance, nil
@@ -98,6 +110,12 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 	}
 	*/
 	
+	// Draw current terrain
+	if err := g.terrains[g.currentLevel].Draw(r); err != nil {
+		return err
+	}
+	
+	// Draw everything else
 	return g.Base.Draw(r)
 }
 
@@ -105,6 +123,10 @@ func (g *Game) Destroy() {
 	g.player.Controller <- Quit
 	g.ticker.Stop()
 	g.Base.Destroy()
+}
+
+func (g *Game) Level() *Level {
+	return &g.levels[g.currentLevel]
 }
 
 func (g *Game) HandleEvent(ev interface{}) error {
@@ -134,7 +156,8 @@ func (g *Game) HandleEvent(ev interface{}) error {
 					g.player.Controller <- StopWalkRight
 				}
 			case 'e':
-				if v.Type == sdl.KeyDown {
+				if v.Type == sdl.KeyUp {
+					g.currentLevel = (g.currentLevel+1)%2
 					g.player.Controller <- Teleport
 				}
 			}
