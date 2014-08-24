@@ -147,14 +147,14 @@ func (p *Player) update(t time.Duration) {
 				p.anim = Standing
 				ny = (ny/tileHeight)*tileHeight
 				p.fy = float64(ny)
-				p.dx, p.dy = 0, 0
+				p.dy = 0
 				p.ddy = 0
 		}
 		if tile := gameInstance.level.QueryPoint(nx+31, ny+32); tile.solid {
 				p.anim = Standing
 				ny = (ny/tileHeight)*tileHeight
 				p.fy = float64(ny)
-				p.dx, p.dy = 0, 0
+				p.dy = 0
 				p.ddy = 0
 		}
 	}
