@@ -85,9 +85,9 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 }
 
 func (g *Game) tickLoop() {
-	for t := range g.ticker.C {
-		dt := t.Sub(g.t0)
-		g.player.Updater <- dt
+	for _ = range g.ticker.C {
+		//dt := t.Sub(g.t0)
+		//g.player.Updater <- dt
 		
 		// If the player is near the door, open it;
 		// If the player is not near the door, close it.

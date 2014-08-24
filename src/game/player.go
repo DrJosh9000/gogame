@@ -13,6 +13,8 @@ const (
 	playerFramesWidth  = 4
 	playerWidth, playerHeight = 32, 32
 	
+	playerUpdateInterval = 10 * time.Millisecond
+	
 	playerWalkSpeed = 384 // pixels per second?
 	playerJumpSpeed = -512
 	playerGravity = 2048
@@ -56,7 +58,7 @@ type Player struct {
 	lastUpdate time.Duration
 	
 	Controller chan Control
-	Updater chan time.Duration
+	Updater *time.Ticker
 	
 	// All struct elements below should be controlled only by the life goroutine.
 	facing Facing
@@ -78,7 +80,7 @@ func NewPlayer(ctx *sdl.Context) (*Player, error) {
 		anim: Standing,
 		tex: tex,
 		Controller: make(chan Control),
-		Updater: make(chan time.Duration),
+		Updater: time.NewTicker(playerUpdateInterval),
 	}
 	go p.life()
 	return p, nil
@@ -102,7 +104,7 @@ func (p *Player) Draw(r *sdl.Renderer) error {
 
 func (p *Player) Destroy() {
 	close(p.Controller)
-	close(p.Updater)
+	p.Updater.Stop()
 }
 
 func (p *Player) update(t time.Duration) {
@@ -230,14 +232,15 @@ func (p *Player) control(ctl Control) bool {
 }
 
 func (p *Player) life() {
+	t0 := time.Now()
 	for {
 		select {
 		case c := <-p.Controller:
 			if p.control(c) {
 				return
 			}
-		case t := <-p.Updater:
-			p.update(t)
+		case t := <-p.Updater.C:
+			p.update(t.Sub(t0))
 		}
 	}
 }
