@@ -25,6 +25,7 @@ type Game struct {
 	ticker *time.Ticker
 
 	player *Player
+	exit *Exit
 	levels [2]*Level
 	terrains [2]*Terrain
 	currentLevel int
@@ -57,26 +58,40 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	ex, err := NewExit(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ex.x, ex.y = tileWidth * m0.ExitX, tileHeight * m0.ExitY
 
-	gameInstance = &Game{
+	g := &Game{
 		ctx:    ctx,
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
+		exit: ex,
 		levels: [2]*Level{m0, m1},
 		terrains: [2]*Terrain{t0, t1},
 		currentLevel: 0,
 	}
+	gameInstance = g
 	p.x, p.y = tileWidth * m0.StartX, tileHeight * m0.StartY
-	gameInstance.AddChild(p)
-	go gameInstance.tickLoop()
-	return gameInstance, nil
+	g.AddChild(ex)
+	g.AddChild(p)
+	go g.tickLoop()
+
+	return g, nil
 }
 
 func (g *Game) tickLoop() {
 	for t := range g.ticker.C {
 		dt := t.Sub(g.t0)
 		g.player.Updater <- dt
+		
+		// If the player is near the door, open it;
+		// If the player is not near the door, close it.
+		
 	}
 }
 
