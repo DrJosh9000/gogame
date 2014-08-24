@@ -102,8 +102,6 @@ func (g *Game) HandleEvent(ev interface{}) error {
 				if v.Type == sdl.KeyDown {
 					g.player.Controller <- Teleport
 				}
-			default:
-				fmt.Println("other")
 			}
 	}
 	return nil

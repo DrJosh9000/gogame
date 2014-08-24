@@ -13,7 +13,7 @@ const (
 	playerFramesWidth  = 4
 	playerWidth, playerHeight = 32, 32
 	
-	playerWalkSpeed = 512 // pixels per second?
+	playerWalkSpeed = 384 // pixels per second?
 	playerJumpSpeed = -512
 	playerGravity = 2048
 	
@@ -122,12 +122,13 @@ func (p *Player) update(t time.Duration) {
 		}
 		tau := playerTau * math.Exp(delta)
 		p.dx = tau * p.wx + (1-tau) * p.dx
+		/*
 		p.dy = tau * p.wy + (1-tau) * p.dy
 	case Falling:
 		p.frame = 0
 		p.dx += p.ddx * delta
+		*/
 		p.dy += p.ddy * delta
-
 	}
 
 	// FISIXX
@@ -203,10 +204,12 @@ func (p *Player) control(ctl Control) bool {
 	case StartJump:
 		switch p.anim {
 		case Standing, Walking:
+			/*
 			p.anim = Jumping
 		}
 	case StopJump:
 		if p.anim == Jumping {
+			*/
 			p.anim = Falling
 			p.dy = playerJumpSpeed
 			p.ddy = playerGravity
