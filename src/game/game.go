@@ -12,6 +12,7 @@ const (
 	gameTickerDuration = 10 * time.Millisecond
 	
 	level0File = "assets/level0.txt"
+	level1AFile = "assets/level1a.txt"
 )
 
 var gameInstance *Game
@@ -36,7 +37,7 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 		return nil, err
 	}
 	
-	m, err := LoadLevel(level0File)
+	m, err := LoadLevel(level1AFile)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +65,25 @@ func (g *Game) tickLoop() {
 		dt := t.Sub(g.t0)
 		g.player.Updater <- dt
 	}
+}
+
+func (g *Game) Draw(r *sdl.Renderer) error {
+	// Keep the player in view.
+	// HAX HAX HAX
+	if g.player.x + r.OffsetX > 768 {
+		r.OffsetX = 768 - g.player.x
+	}
+	if g.player.x + r.OffsetX < 256 {
+		r.OffsetX = 256 - g.player.x
+	}
+	if r.OffsetX > 0 {
+		r.OffsetX = 0
+	}
+	if r.OffsetX < -128 * 32 {
+		r.OffsetX = -128 * 32
+	}
+	
+	return g.Base.Draw(r)
 }
 
 func (g *Game) Destroy() {
