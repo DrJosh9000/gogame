@@ -22,7 +22,7 @@ type layer struct {
 	tex   *sdl.Texture
 }
 
-func newLayer(ctx *sdl.Context, m LevelMap) (*layer, error) {
+func newLayer(ctx *sdl.Context, m LevelLayer) (*layer, error) {
 	tex, err := ctx.GetTexture(tileSheetFile)
 	if err != nil {
 		return nil, err
@@ -30,11 +30,13 @@ func newLayer(ctx *sdl.Context, m LevelMap) (*layer, error) {
 	l := &layer{tex: tex}
 	for i := 0; i < len(m); i++ {
 		for j := 0; j < len(m[i]); j++ {
-			l.tiles = append(l.tiles, tile{
-				x:  j * tileWidth,
-				y:  i * tileHeight,
-				id: m[i][j].index,
-			})
+			if m[i][j].index != 0 {
+				l.tiles = append(l.tiles, tile{
+					x:  j * tileWidth,
+					y:  i * tileHeight,
+					id: m[i][j].index,
+				})
+			}
 		}
 	}
 	return l, nil
@@ -55,12 +57,14 @@ type Terrain struct {
 	Base
 }
 
-func NewTerrain(ctx *sdl.Context, m LevelMap) (*Terrain, error) {
+func NewTerrain(ctx *sdl.Context, lev Level) (*Terrain, error) {
 	t := &Terrain{}
-	l, err := newLayer(ctx, m)
-	if err != nil {
-		return nil, err
+	for _, m := range lev {
+		l, err := newLayer(ctx, m)
+		if err != nil {
+			return nil, err
+		}
+		t.AddChild(l)
 	}
-	t.AddChild(l)
 	return t, nil
 }

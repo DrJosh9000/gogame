@@ -23,7 +23,7 @@ type Game struct {
 	ticker *time.Ticker
 
 	player *Player
-	level LevelMap
+	level Level
 }
 
 func GetGame(ctx *sdl.Context) (*Game, error) {
@@ -36,7 +36,7 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 		return nil, err
 	}
 	
-	m, err := LoadMap(level0File)
+	m, err := LoadLevel(level0File)
 	if err != nil {
 		return nil, err
 	}

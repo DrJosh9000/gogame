@@ -139,19 +139,19 @@ func (p *Player) update(t time.Duration) {
 	
 	switch p.anim {
 	case Standing, Walking:
-		if !gameInstance.level.QueryPoint(nx, ny+32).solid && !gameInstance.level.QueryPoint(nx+31, ny+32).solid {
+		if !gameInstance.level.IsPointSolid(nx, ny+32) && !gameInstance.level.IsPointSolid(nx+31, ny+32) {
 				p.anim = Falling
 				p.ddy = playerGravity
 		}
 	case Falling:
-		if tile := gameInstance.level.QueryPoint(nx, ny+32); tile.solid {
+		if gameInstance.level.IsPointSolid(nx, ny+32) {
 				p.anim = Standing
 				ny = (ny/tileHeight)*tileHeight
 				p.fy = float64(ny)
 				p.dy = 0
 				p.ddy = 0
 		}
-		if tile := gameInstance.level.QueryPoint(nx+31, ny+32); tile.solid {
+		if gameInstance.level.IsPointSolid(nx+31, ny+32) {
 				p.anim = Standing
 				ny = (ny/tileHeight)*tileHeight
 				p.fy = float64(ny)
@@ -159,12 +159,12 @@ func (p *Player) update(t time.Duration) {
 				p.ddy = 0
 		}
 	}
-	if tile := gameInstance.level.QueryPoint(nx, ny+31); tile.solid {
+	if gameInstance.level.IsPointSolid(nx, ny+31) {
 			nx = ((nx/tileWidth)+1)*tileWidth
 			p.fx, p.fy = float64(nx), float64(ny)
 			p.dx = 0
 	}
-	if tile := gameInstance.level.QueryPoint(nx+31, ny+31); tile.solid {
+	if gameInstance.level.IsPointSolid(nx+31, ny+31) {
 			nx = (nx/tileWidth)*tileWidth
 			p.fx, p.fy = float64(nx), float64(ny)
 			p.dx = 0
