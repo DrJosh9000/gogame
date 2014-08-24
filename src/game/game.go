@@ -79,9 +79,24 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 	if r.OffsetX > 0 {
 		r.OffsetX = 0
 	}
-	if r.OffsetX < -128 * 32 {
-		r.OffsetX = -128 * 32
+	if r.OffsetX - 32 * 32 < -128 * 32 {
+		r.OffsetX = -128 * 32 + 32 * 32
 	}
+	
+	if g.player.y + r.OffsetY > 576 {
+		r.OffsetY = 576 - g.player.y
+	}
+	if g.player.y + r.OffsetY < 192 {
+		r.OffsetY = 192 - g.player.y
+	}
+	if r.OffsetY < 0 {
+		r.OffsetY = 0
+	}
+	/*
+	if r.OffsetX - 32 * 32 < -128 * 32 {
+		r.OffsetX = -128 * 32 + 32 * 32
+	}
+	*/
 	
 	return g.Base.Draw(r)
 }
