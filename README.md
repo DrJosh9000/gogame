@@ -1,4 +1,6 @@
-# LD30 #
-Branch
+# "Press E to Teleport" #
+(working title)
+
+Entry (maybe) into Ludum Dare 30.
  
 
