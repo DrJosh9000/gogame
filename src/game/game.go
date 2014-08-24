@@ -25,7 +25,7 @@ type Game struct {
 	ticker *time.Ticker
 
 	player *Player
-	levels [2]Level
+	levels [2]*Level
 	terrains [2]*Terrain
 	currentLevel int
 }
@@ -63,10 +63,11 @@ func GetGame(ctx *sdl.Context) (*Game, error) {
 		t0:     time.Now(),
 		ticker: time.NewTicker(gameTickerDuration),
 		player: p,
-		levels: [2]Level{m0, m1},
+		levels: [2]*Level{m0, m1},
 		terrains: [2]*Terrain{t0, t1},
 		currentLevel: 0,
 	}
+	p.x, p.y = tileWidth * m0.StartX, tileHeight * m0.StartY
 	gameInstance.AddChild(p)
 	go gameInstance.tickLoop()
 	return gameInstance, nil
@@ -125,7 +126,7 @@ func (g *Game) Destroy() {
 }
 
 func (g *Game) Level() *Level {
-	return &g.levels[g.currentLevel]
+	return g.levels[g.currentLevel]
 }
 
 func (g *Game) HandleEvent(ev interface{}) error {

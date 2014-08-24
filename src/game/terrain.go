@@ -57,9 +57,9 @@ type Terrain struct {
 	Base
 }
 
-func NewTerrain(ctx *sdl.Context, lev Level) (*Terrain, error) {
+func NewTerrain(ctx *sdl.Context, lev *Level) (*Terrain, error) {
 	t := &Terrain{}
-	for _, m := range lev {
+	for _, m := range lev.Map {
 		l, err := newLayer(ctx, m)
 		if err != nil {
 			return nil, err

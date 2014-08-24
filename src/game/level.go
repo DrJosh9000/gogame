@@ -14,7 +14,11 @@ type TileProps struct {
 
 // Row, Column
 type LevelLayer [][]TileProps
-type Level []LevelLayer
+type Level struct {
+	Map []LevelLayer
+	StartX, StartY int
+	ExitX, ExitY int
+}
 
 var (
 	transparentTile = TileProps{index: 0}
@@ -50,18 +54,23 @@ var (
 		'r': {index: 29, solid: true},
 		't': {index: 30, solid: false},
 		'^': {index: 31, solid: true, deadly: true},
+		'n': {index: 32}, // Exit sign
+		'm': {index: 33},
 		'(': {index: 34},
 		'R': {index: 35, solid: false},
 		'Y': {index: 36, solid: false},
 		'T': {index: 37, solid: false},
 		')': {index: 38},
+		
+		'*': transparentTile, // Start position
+		'X': transparentTile, // Exit
 	}
 	outOfBounds = TileProps{solid: true}
 	
-	loadedMaps = make(map[string]Level)
+	loadedMaps = make(map[string]*Level)
 )
 
-func LoadLevel(name string) (Level, error) {
+func LoadLevel(name string) (*Level, error) {
 	if m, ok := loadedMaps[name]; ok {
 		return m, nil
 	}
@@ -73,7 +82,7 @@ func LoadLevel(name string) (Level, error) {
 	defer f.Close()
 	
 	width := 32
-	var l Level
+	l := &Level{}
 	var m LevelLayer
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
@@ -98,13 +107,21 @@ func LoadLevel(name string) (Level, error) {
 				continue
 			}
 			if line == "}" {
-				l = append(l, m)
+				l.Map = append(l.Map, m)
 				continue
 			}
 		}
 		
 		var r []TileProps
-		for _, c := range []byte(line) {
+		for j, c := range []byte(line) {
+			switch c {
+			case '*':
+				l.StartX = j
+				l.StartY = len(m)
+			case 'X':
+				l.ExitX = j
+				l.ExitY = len(m)
+			}
 			t, ok := tileMap[c]
 			if !ok {
 				return nil, fmt.Errorf("unknown map tile '%c'", c)
@@ -122,6 +139,8 @@ func LoadLevel(name string) (Level, error) {
 	if err := sc.Err(); err != nil {
 		return nil, err
 	}
+	
+	loadedMaps[name] = l
 	return l, nil
 }
 
@@ -133,8 +152,8 @@ func (l LevelLayer) QueryPoint(x, y int) TileProps {
 	return l[ty][tx]
 }
 
-func (l Level) IsPointSolid(x, y int) bool {
-	for _, m := range l {
+func (l *Level) IsPointSolid(x, y int) bool {
+	for _, m := range l.Map {
 		if m.QueryPoint(x, y).solid {
 			return true
 		}
