@@ -1,10 +1,10 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
+#cgo CFLAGS: -I/Users/josh/Code/gogame/include
 #cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 const int kQuit = SDL_QUIT;
 const int kKeyDown = SDL_KEYDOWN;

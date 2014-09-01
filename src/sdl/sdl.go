@@ -2,11 +2,8 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
-#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
-
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 const int kInitEverything = SDL_INIT_EVERYTHING;
 const int kInitVideo = SDL_INIT_VIDEO;
@@ -34,27 +31,27 @@ type Color struct {
 
 var BlackColor = Color{0x00, 0x00, 0x00, 0xff}
 
-func Rect(x, y, w, h int) *C.SDL_Rect {
-	return &C.SDL_Rect{C.int(x), C.int(y), C.int(w), C.int(h)}
+func Rect(x, y, w, h int) C.SDL_Rect {
+	return C.SDL_Rect{x: C.int(x), y: C.int(y), w: C.int(w), h: C.int(h)}
 }
 
 type Context struct {
 	*Window
 	*Renderer
-	*Surface
+	*TextureManager
 }
 
 // NewContext creates a Context referring to a new window with a given title and
 // size, and a sensible renderer. Don't forget to Close the context when done.
 func NewContext(title string, width, height int) (*Context, error) {
-
 	if errno := C.SDL_Init(C.kInitEverything); errno < 0 {
-		return nil, fmt.Errorf("error no from SDL_init(everything): %d", errno)
+		return nil, fmt.Errorf("unable to SDL_init(everything): %d %s", errno, Err())
 	}
+
 	one := C.CString("1")
 	defer C.free(unsafe.Pointer(one))
 	if errno := C.SDL_SetHint(C.kHintRenderScaleQuality, one); errno == 0 {
-		return nil, fmt.Errorf("unable to set hint: %d %s", Err())
+		return nil, fmt.Errorf("unable to set hint: %d %s", errno, Err())
 	}
 
 	w, err := NewWindow(title, width, height)
@@ -66,15 +63,16 @@ func NewContext(title string, width, height int) (*Context, error) {
 		return nil, err
 	}
 	ctx := &Context{
-		Window:   w,
-		Surface:  w.Surface(),
-		Renderer: r,
+		Window:         w,
+		Renderer:       r,
+		TextureManager: NewTextureManager(r),
 	}
 	ctx.Renderer.SetDrawColor(BlackColor)
 	return ctx, nil
 }
 
 func (c *Context) Close() {
+	c.TextureManager.Destroy()
 	c.Renderer.Destroy()
 	c.Window.Destroy()
 	C.SDL_Quit()

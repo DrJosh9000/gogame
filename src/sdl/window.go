@@ -1,11 +1,8 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
-#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
-
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 const int kWindowPosUndefined = SDL_WINDOWPOS_UNDEFINED;
 const int kWindowShown = SDL_WINDOW_SHOWN;
@@ -27,7 +24,7 @@ func NewWindow(title string, width, height int) (*Window, error) {
 	if w == nil {
 		return nil, fmt.Errorf("unable to create SDL Window: %s", Err())
 	}
-	return &Window{unsafe.Pointer(w)}, nil
+	return &Window{window: unsafe.Pointer(w)}, nil
 }
 
 func (w *Window) w() *C.SDL_Window {
@@ -39,21 +36,22 @@ func (w *Window) CreateRenderer(opts RendererOption) (*Renderer, error) {
 	if r == nil {
 		return nil, fmt.Errorf("unable to create SDL Renderer with opts %d: %s", opts, Err())
 	}
-	return &Renderer{unsafe.Pointer(r)}, nil
+	return &Renderer{renderer: unsafe.Pointer(r)}, nil
 }
 
 func (w *Window) Renderer() *Renderer {
 	r := C.SDL_GetRenderer(w.w())
-	return &Renderer{unsafe.Pointer(r)}
+	return &Renderer{renderer: unsafe.Pointer(r)}
 }
 
 func (w *Window) Surface() *Surface {
 	s := C.SDL_GetWindowSurface(w.w())
-	return &Surface{unsafe.Pointer(s)}
+	return &Surface{surface: unsafe.Pointer(s)}
 }
 
 func (w *Window) Destroy() {
 	if w.w() != nil {
 		C.SDL_DestroyWindow(w.w())
 	}
+	w.window = nil
 }

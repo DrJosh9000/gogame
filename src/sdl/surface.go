@@ -1,11 +1,11 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
+#cgo CFLAGS: -Iinclude
 #cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
 
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 // Because SDL_LoadBMP is a macro.
 SDL_Surface* loadbmp(const char *file) {

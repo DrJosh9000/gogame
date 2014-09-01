@@ -1,11 +1,8 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
-#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
-
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 const int kRendererSoftware = SDL_RENDERER_SOFTWARE;
 const int kRendererAccelerated = SDL_RENDERER_ACCELERATED;
@@ -37,6 +34,8 @@ const (
 )
 
 type Renderer struct {
+	// hahahahahaha
+	OffsetX, OffsetY int
 	renderer unsafe.Pointer
 }
 
@@ -44,26 +43,41 @@ func (r *Renderer) r() *C.SDL_Renderer {
 	return (*C.SDL_Renderer)(r.renderer)
 }
 
-func (r *Renderer) Clear() {
-	C.SDL_RenderClear(r.r())
+func (r *Renderer) Clear() error {
+	if errno := C.SDL_RenderClear(r.r()); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderClear: %d %s", errno, Err())
+	}
+	return nil
 }
 
 func (r *Renderer) Present() {
 	C.SDL_RenderPresent(r.r())
 }
 
-func (r *Renderer) Copy(t *Texture, src, dst *C.SDL_Rect) {
-	C.SDL_RenderCopy(r.r(), t.t(), src, dst)
+func (r *Renderer) Copy(t *Texture, src, dst C.SDL_Rect) error {
+	//fmt.Printf("r: %x    t: %x\n", r.renderer, t.texture)
+	dst.x = C.int(int(dst.x) + r.OffsetX)
+	dst.y = C.int(int(dst.y) + r.OffsetY)
+	if errno := C.SDL_RenderCopy(r.r(), t.t(), &src, &dst); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderCopy: %d %s", errno, Err())
+	}
+	return nil
 }
 
-func (r *Renderer) CopyEx(t *Texture, src, dst *C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) {
-	C.SDL_RenderCopyEx(r.r(), t.t(), src, dst, C.double(angle), center, C.SDL_RendererFlip(flip))
+func (r *Renderer) CopyEx(t *Texture, src, dst C.SDL_Rect, angle float64, center *C.SDL_Point, flip RendererFlip) error {
+	dst.x = C.int(int(dst.x) + r.OffsetX)
+	dst.y = C.int(int(dst.y) + r.OffsetY)
+	if errno := C.SDL_RenderCopyEx(r.r(), t.t(), &src, &dst, C.double(angle), center, C.SDL_RendererFlip(flip)); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderCopyEx: %d %s", errno, Err())
+	}
+	return nil
 }
 
 func (r *Renderer) Destroy() {
 	if r.r() != nil {
 		C.SDL_DestroyRenderer(r.r())
 	}
+	r.renderer = nil
 }
 
 func (r *Renderer) SetDrawColor(c Color) {
@@ -82,6 +96,16 @@ func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {
 // adds it to the renderer as a texture, and frees the surface.
 func (r *Renderer) LoadBMP(path string) (*Texture, error) {
 	s, err := LoadBMP(path)
+	if err != nil {
+		return nil, err
+	}
+	defer s.Free()
+	return r.TextureFromSurface(s)
+}
+
+// Similar but uses the SDL_image library.
+func (r *Renderer) LoadImage(path string) (*Texture, error) {
+	s, err := LoadImage(path)
 	if err != nil {
 		return nil, err
 	}

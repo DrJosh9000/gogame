@@ -1,11 +1,8 @@
 package sdl
 
 /*
-#cgo CFLAGS: -I/Library/Frameworks/SDL2.framework/Headers
-#cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
-
 #include <stdlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 */
 import "C"
 import (
@@ -21,5 +18,41 @@ func (t *Texture) t() *C.SDL_Texture {
 }
 
 func (t *Texture) Destroy() {
-	C.SDL_DestroyTexture(t.t())
+	if t.t() != nil {
+		C.SDL_DestroyTexture(t.t())
+	}
+	t.texture = nil
+}
+
+type TextureManager struct {
+	assets map[string]*Texture
+	r      *Renderer
+}
+
+func NewTextureManager(r *Renderer) *TextureManager {
+	return &TextureManager{
+		assets: make(map[string]*Texture),
+		r:      r,
+	}
+}
+
+func (a *TextureManager) GetTexture(name string) (*Texture, error) {
+	if t, ok := a.assets[name]; ok {
+		return t, nil
+	}
+	t, err := a.r.LoadImage(name)
+	if err != nil {
+		return nil, err
+	}
+	a.assets[name] = t
+	return t, nil
+}
+
+func (a *TextureManager) Destroy() {
+	if a.assets != nil {
+		for _, x := range a.assets {
+			x.Destroy()
+		}
+	}
+	a.assets = nil
 }

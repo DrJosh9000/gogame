@@ -1,2 +1,6 @@
-# "gogame"
-I'm fooling around with Go and SDL. Nothing to see here.
+# "Press E to Teleport" #
+(working title)
+
+Entry (maybe) into Ludum Dare 30.
+ 
+
