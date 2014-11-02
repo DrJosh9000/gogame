@@ -1,7 +1,6 @@
 package sdl
 
 /*
-#cgo CFLAGS: -Iinclude
 #cgo LDFLAGS: -F/Library/Frameworks -framework SDL2
 
 #include <stdlib.h>
