@@ -31,7 +31,7 @@ type Game struct {
 	currentLevel int
 }
 
-func GetGame(ctx *sdl.Context) (*Game, error) {
+func NewGame(ctx *sdl.Context) (*Game, error) {
 	if gameInstance != nil {
 		return gameInstance, nil
 	}

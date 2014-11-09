@@ -30,7 +30,7 @@ func main() {
 	defer ctx.Close()
 	r := ctx.Renderer
 
-	g, err := game.GetGame(ctx)
+	g, err := game.NewGame(ctx)
 	if err != nil {
 		panic(err)
 	}

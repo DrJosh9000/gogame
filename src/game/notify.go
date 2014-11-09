@@ -1,5 +1,9 @@
 package game
 
+import (
+	"fmt"
+)
+
 // message is the interface for notification messages.
 type message interface {
 	String() string
@@ -19,4 +23,25 @@ func notify(key string, m message) {
 	for _, n := range notes[key] {
 		n <- m
 	}
+}
+
+// Message types.
+
+type basicMsg string
+
+func (m basicMsg) String() string {
+	return string(m)
+}
+
+var (
+	quitMsg = basicMsg("quit")
+)
+
+type positionMsg struct {
+	Obj message
+	WorldX, WorldY int
+}
+
+func (p positionMsg) String() string {
+	return fmt.Sprintf("Object:%v WorldX:%d WorldY:%d", p.Obj, p.WorldX, p.WorldY)
 }
