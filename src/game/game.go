@@ -135,6 +135,7 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 }
 
 func (g *Game) Destroy() {
+	notify("game", quitMsg)
 	g.player.Controller <- Quit
 //	g.ticker.Stop()
 	g.Base.Destroy()

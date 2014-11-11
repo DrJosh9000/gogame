@@ -26,8 +26,7 @@ type Exit struct {
 	x, y, frame int
 	
 	inbox chan message
-	Updater *time.Ticker
-	Controller chan DoorState
+	updater *time.Ticker
 }
 
 func NewExit(ctx *sdl.Context) (*Exit, error) {
@@ -38,9 +37,9 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 	e := &Exit{
 		tex: tex,
 		inbox: make(chan message, 10),
-		Controller: make(chan DoorState, 10),
-		Updater: time.NewTicker(100 * time.Millisecond),
+		updater: time.NewTicker(100 * time.Millisecond),
 	}
+	kmp("global", e.inbox)
 	kmp("player.location", e.inbox)
 	go e.life()
 	return e, nil
@@ -50,9 +49,7 @@ func (e *Exit) AddChild(Object) {}
 func (e *Exit) Children() []Object {return nil}
 
 func (e *Exit) Destroy() {
-	e.Controller <- DoorStateQuit
-	close(e.Controller)
-	e.Updater.Stop()
+	e.updater.Stop()
 }
 
 func (e *Exit) Draw(r *sdl.Renderer) error {
@@ -68,6 +65,10 @@ func (e* Exit) life() {
 		select {
 		case msg := <-e.inbox:
 			switch m := msg.v.(type) {
+			case basicMsg:
+				if msg.k == "game" && m == quitMsg {
+					return
+				}
 			case locationMsg:
 				if msg.k == "player.location" {
 					// If the player is near the door, open it;
@@ -84,12 +85,7 @@ func (e* Exit) life() {
 					}
 				}
 			}
-		case c := <-e.Controller:
-			if c == DoorStateQuit {
-				return
-			}
-			e.DoorState = c
-		case <-e.Updater.C:
+		case <-e.updater.C:
 			switch  {
 			case e.DoorState == DoorStateClosed && e.frame > 0:
 				e.frame--
