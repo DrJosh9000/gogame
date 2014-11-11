@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+	
 	"sdl"
 )
 
@@ -9,6 +11,7 @@ type Object interface {
 	Children() []Object
 	Destroy()
 	Draw(*sdl.Renderer) error
+	String() string
 }
 
 type Base struct {
@@ -40,4 +43,8 @@ func (b *Base) Destroy() {
 			c.Destroy()
 		}
 	}
+}
+
+func (b *Base) String() string {
+	return fmt.Sprintf("%T", b)
 }

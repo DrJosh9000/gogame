@@ -23,6 +23,8 @@ type Game struct {
 	ctx    *sdl.Context
 	t0     time.Time
 	ticker *time.Ticker
+	inbox  chan message
+	offsetX, offsetY int
 
 	player *Player
 	exit *Exit
@@ -62,7 +64,8 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	g := &Game{
 		ctx:    ctx,
 		t0:     time.Now(),
-		ticker: time.NewTicker(gameTickerDuration),
+		//ticker: time.NewTicker(gameTickerDuration),
+		inbox:  make(chan message, 10),
 		player: p,
 		levels: [2]*Level{m0, m1},
 		terrains: [2]*Terrain{t0, t1},
@@ -71,64 +74,56 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	gameInstance = g
 	p.x, p.y = tileWidth * m0.StartX, tileHeight * m0.StartY
 	g.AddChild(p)
-	go g.tickLoop()
+	
+	kmp("player.location", g.inbox)
+	go g.messageLoop()
 
 	return g, nil
 }
 
-func (g *Game) tickLoop() {
-	for _ = range g.ticker.C {
-		//dt := t.Sub(g.t0)
-		//g.player.Updater <- dt
-		
-		for _, ter := range g.terrains {
-			if ter.exit != nil {
-				// If the player is near the door, open it;
-				// If the player is not near the door, close it.
-				if ter.exit.DoorState == DoorStateClosed &&
-					g.player.x > ter.exit.x - 200 && g.player.x < ter.exit.x + 200 &&
-				    g.player.y > ter.exit.y - 200 && g.player.y < ter.exit.y + 200 {
-					ter.exit.Controller <- DoorStateOpen
+func (g *Game) messageLoop() {
+	for msg := range g.inbox {
+		switch m := msg.v.(type) {
+		case locationMsg:
+			if msg.k == "player.location" {
+				// Keep the player in view.
+				if m.x + g.offsetX > 768 {
+					g.offsetX = 768 - m.x
 				}
-				if ter.exit.DoorState == DoorStateOpen && (
-					g.player.x <= ter.exit.x - 200 || g.player.x >= ter.exit.x + 200 ||
-					g.player.y <= ter.exit.y - 200 || g.player.y >= ter.exit.y + 200) {
-					ter.exit.Controller <- DoorStateClosed
+				if m.x + g.offsetX < 256 {
+					g.offsetX = 256 - m.x
 				}
+				if g.offsetX > 0 {
+					g.offsetX = 0
+				}
+				// TODO: base on level size, pls
+				if g.offsetX < -96 * tileWidth {
+					g.offsetX = -96 * tileWidth
+				}
+				
+				if m.y + g.offsetY > 576 {
+					g.offsetY = 576 - m.y
+				}
+				if m.y + g.offsetY < 192 {
+					g.offsetY = 192 - m.y
+				}
+				// TODO: when levels have height, adapt here:
+				g.offsetY = 0
+				/*
+				if g.offsetY < 0 {
+					g.offsetY = 0
+				}
+				if g.offsetY > 0 {
+					g.offsetY = 0
+				}
+				*/
 			}
-		}
-	}
+		} // switch msg.(type)
+	} // for range g.inbox
 }
 
 func (g *Game) Draw(r *sdl.Renderer) error {
-	// Keep the player in view.
-	// HAX HAX HAX
-	if g.player.x + r.OffsetX > 768 {
-		r.OffsetX = 768 - g.player.x
-	}
-	if g.player.x + r.OffsetX < 256 {
-		r.OffsetX = 256 - g.player.x
-	}
-	if r.OffsetX > 0 {
-		r.OffsetX = 0
-	}
-	// TODO: base on level size, pls
-	if r.OffsetX < -96 * tileWidth {
-		r.OffsetX = -96 * tileWidth
-	}
-	
-	if g.player.y + r.OffsetY > 576 {
-		r.OffsetY = 576 - g.player.y
-	}
-	if g.player.y + r.OffsetY < 192 {
-		r.OffsetY = 192 - g.player.y
-	}
-	if r.OffsetY < 0 {
-		r.OffsetY = 0
-	}
-	if r.OffsetY > 0 {
-		r.OffsetY = 0
-	}
+	r.OffsetX, r.OffsetY = g.offsetX, g.offsetY
 	
 	// Draw current terrain
 	if err := g.terrains[g.currentLevel].Draw(r); err != nil {
@@ -141,7 +136,7 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 
 func (g *Game) Destroy() {
 	g.player.Controller <- Quit
-	g.ticker.Stop()
+//	g.ticker.Stop()
 	g.Base.Destroy()
 }
 

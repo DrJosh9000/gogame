@@ -173,6 +173,8 @@ func (p *Player) update(t time.Duration) {
 	}
 	
 	p.x, p.y = nx, ny
+	
+	notify("player.location", locationMsg{o: p, x: p.x, y: p.y})
 }
 
 func (p *Player) control(ctl Control) bool {

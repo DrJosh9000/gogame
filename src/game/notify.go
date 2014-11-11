@@ -4,9 +4,19 @@ import (
 	"fmt"
 )
 
-// message is the interface for notification messages.
-type message interface {
+// message is the basic type for notification messages,
+// incorporating the message value and the key it was sent under.
+type message struct {
+	k string
+	v messageValue
+}
+
+type messageValue interface {
 	String() string
+}
+
+func (m *message) String() string {
+	return fmt.Sprintf("message{k:%s, v:%v}", m.k, m.v)
 }
 
 // notes keeps track of all registered channels.
@@ -19,13 +29,14 @@ func kmp(key string, ch chan message) {
 }
 
 // notify sends a message to every channel registered for a key.
-func notify(key string, m message) {
+func notify(key string, value messageValue) {
 	for _, n := range notes[key] {
-		n <- m
+		n <- message{k: key, v: value}
 	}
 }
 
-// Message types.
+
+// Message body types.
 
 type basicMsg string
 
@@ -37,11 +48,11 @@ var (
 	quitMsg = basicMsg("quit")
 )
 
-type positionMsg struct {
-	Obj message
-	WorldX, WorldY int
+type locationMsg struct {
+	o fmt.Stringer
+	x, y int
 }
 
-func (p positionMsg) String() string {
-	return fmt.Sprintf("Object:%v WorldX:%d WorldY:%d", p.Obj, p.WorldX, p.WorldY)
+func (l locationMsg) String() string {
+	return fmt.Sprintf("locationMsg{o:%v x:%d y:%d}", l.o, l.x, l.y)
 }

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 	
 	"sdl"
@@ -24,6 +25,7 @@ type Exit struct {
 	DoorState
 	x, y, frame int
 	
+	inbox chan message
 	Updater *time.Ticker
 	Controller chan DoorState
 }
@@ -35,9 +37,11 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 	}
 	e := &Exit{
 		tex: tex,
-		Controller: make(chan DoorState),
+		inbox: make(chan message, 10),
+		Controller: make(chan DoorState, 10),
 		Updater: time.NewTicker(100 * time.Millisecond),
 	}
+	kmp("player.location", e.inbox)
 	go e.life()
 	return e, nil
 }
@@ -55,9 +59,31 @@ func (e *Exit) Draw(r *sdl.Renderer) error {
 	return r.Copy(e.tex, sdl.Rect(e.frame*exitFrameWidth, 0, exitFrameWidth, exitFrameHeight), sdl.Rect(e.x, e.y, exitFrameWidth, exitFrameHeight))
 }
 
+func (e *Exit) String() string {
+	return fmt.Sprintf("%T", e)
+}
+
 func (e* Exit) life() {
 	for {
 		select {
+		case msg := <-e.inbox:
+			switch m := msg.v.(type) {
+			case locationMsg:
+				if msg.k == "player.location" {
+					// If the player is near the door, open it;
+					// If the player is not near the door, close it.
+					if e.DoorState == DoorStateClosed &&
+						m.x > e.x - 200 && m.x < e.x + 200 &&
+						m.y > e.y - 200 && m.y < e.y + 200 {
+						e.DoorState = DoorStateOpen
+					}
+					if e.DoorState == DoorStateOpen && (
+						m.x <= e.x - 200 || m.x >= e.x + 200 ||
+						m.y <= e.y - 200 || m.y >= e.y + 200) {
+						e.DoorState = DoorStateClosed
+					}
+				}
+			}
 		case c := <-e.Controller:
 			if c == DoorStateQuit {
 				return
