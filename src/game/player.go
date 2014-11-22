@@ -8,11 +8,16 @@ import (
 	"sdl"
 )
 
-const (
-	texturePlayerFile         = "assets/spacepsn.png"
-	playerFramesWidth         = 4
-	playerWidth, playerHeight = 32, 32
+var playerTemplate = &spriteTemplate{
+	name: "player",
+	sheetFile: "assets/spacepsn.png",
+	framesX: 4,
+	framesY: 2,
+	frameWidth: 32,
+	frameHeight: 32,
+}
 
+const (
 	playerUpdateInterval = 10 * time.Millisecond
 
 	playerWalkSpeed = 384 // pixels per second?
@@ -56,7 +61,7 @@ const (
 )
 
 type Player struct {
-	tex        *sdl.Texture
+	*sprite
 	lastUpdate time.Duration
 
 	Controller chan Control
@@ -66,42 +71,25 @@ type Player struct {
 	facing                   Facing
 	anim                     Animation
 	wx, wy                   float64
-	x, y, frame              int
 	fx, fy, dx, dy, ddx, ddy float64
 }
 
 func NewPlayer(ctx *sdl.Context) (*Player, error) {
-	tex, err := ctx.GetTexture(texturePlayerFile)
+	s, err := playerTemplate.new(ctx)
 	if err != nil {
 		return nil, err
 	}
 	p := &Player{
+		sprite:	    s,
 		fx:         64,
 		fy:         768 - 64,
 		facing:     Right,
 		anim:       Standing,
-		tex:        tex,
 		Controller: make(chan Control),
 		Updater:    time.NewTicker(playerUpdateInterval),
 	}
 	go p.life()
 	return p, nil
-}
-
-func (p *Player) Draw(r *sdl.Renderer) error {
-	fx := (p.frame % playerFramesWidth) * playerWidth
-	switch p.facing {
-	case Left:
-		return r.Copy(p.tex,
-			sdl.Rect(fx, 0, playerWidth, playerHeight),
-			sdl.Rect(p.x, p.y, playerWidth, playerHeight))
-	case Right:
-		// TODO: separate animations for facing right
-		return r.CopyEx(p.tex,
-			sdl.Rect(fx, 0, playerWidth, playerHeight),
-			sdl.Rect(p.x, p.y, playerWidth, playerHeight), 0, nil, sdl.FlipHorizontal)
-	}
-	return nil
 }
 
 func (p *Player) Destroy() {
@@ -127,6 +115,9 @@ func (p *Player) update(t time.Duration) {
 	default:
 		if p.anim != Walking {
 			p.frame = 0
+		}
+		if p.facing == Right {
+			p.frame += 4
 		}
 		tau := playerTau * math.Exp(delta)
 		p.dx = tau*p.wx + (1-tau)*p.dx
