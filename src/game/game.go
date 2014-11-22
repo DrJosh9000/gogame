@@ -72,7 +72,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		currentLevel: 0,
 	}
 	gameInstance = g
-	p.x, p.y = tileWidth*m0.StartX, tileHeight*m0.StartY
+	p.x, p.y = tileTemplate.frameWidth*m0.StartX, tileTemplate.frameHeight*m0.StartY
 	g.AddChild(p)
 
 	kmp("player.location", g.inbox)
@@ -97,8 +97,8 @@ func (g *Game) messageLoop() {
 					g.offsetX = 0
 				}
 				// TODO: base on level size, pls
-				if g.offsetX < -96*tileWidth {
-					g.offsetX = -96 * tileWidth
+				if g.offsetX < -96*tileTemplate.frameWidth {
+					g.offsetX = -96 * tileTemplate.frameWidth
 				}
 
 				if m.y+g.offsetY > 576 {

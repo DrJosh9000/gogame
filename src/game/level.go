@@ -147,7 +147,7 @@ func LoadLevel(name string) (*Level, error) {
 }
 
 func (l LevelLayer) QueryPoint(x, y int) TileProps {
-	tx, ty := x/tileWidth, y/tileHeight
+	tx, ty := x/tileTemplate.frameWidth, y/tileTemplate.frameHeight
 	if ty < 0 || ty >= len(l) || tx < 0 || tx >= len(l[ty]) {
 		return outOfBounds
 	}

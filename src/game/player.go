@@ -9,11 +9,11 @@ import (
 )
 
 var playerTemplate = &spriteTemplate{
-	name: "player",
-	sheetFile: "assets/spacepsn.png",
-	framesX: 4,
-	framesY: 2,
-	frameWidth: 32,
+	name:        "player",
+	sheetFile:   "assets/spacepsn.png",
+	framesX:     4,
+	framesY:     2,
+	frameWidth:  32,
 	frameHeight: 32,
 }
 
@@ -80,7 +80,7 @@ func NewPlayer(ctx *sdl.Context) (*Player, error) {
 		return nil, err
 	}
 	p := &Player{
-		sprite:	    s,
+		sprite:     s,
 		fx:         64,
 		fy:         768 - 64,
 		facing:     Right,
@@ -145,26 +145,26 @@ func (p *Player) update(t time.Duration) {
 	case Falling:
 		if gameInstance.Level().IsPointSolid(nx, ny+32) {
 			p.anim = Standing
-			ny = (ny / tileHeight) * tileHeight
+			ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
 			p.fy = float64(ny)
 			p.dy = 0
 			p.ddy = 0
 		}
 		if gameInstance.Level().IsPointSolid(nx+31, ny+32) {
 			p.anim = Standing
-			ny = (ny / tileHeight) * tileHeight
+			ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
 			p.fy = float64(ny)
 			p.dy = 0
 			p.ddy = 0
 		}
 	}
 	if gameInstance.Level().IsPointSolid(nx, ny+31) {
-		nx = ((nx / tileWidth) + 1) * tileWidth
+		nx = ((nx / tileTemplate.frameWidth) + 1) * tileTemplate.frameWidth
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
 	if gameInstance.Level().IsPointSolid(nx+31, ny+31) {
-		nx = (nx / tileWidth) * tileWidth
+		nx = (nx / tileTemplate.frameWidth) * tileTemplate.frameWidth
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
