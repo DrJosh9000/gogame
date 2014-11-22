@@ -22,7 +22,7 @@ var (
 func main() {
 	// Must do rendering from the main thread, duh.
 	runtime.LockOSThread()
-	
+
 	ctx, err := sdl.NewContext(gameName, defaultWidth, defaultHeight)
 	if err != nil {
 		panic(err)
@@ -41,8 +41,8 @@ func main() {
 			switch v := e.(type) {
 			case sdl.QuitEvent:
 				return quitting
-			case sdl.KeyEvent:
-				if v.Type == sdl.KeyUp && v.KeyCode == 'q' {
+			case sdl.KeyUpEvent:
+				if v.KeyCode == 'q' {
 					return quitting
 				}
 			}

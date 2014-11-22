@@ -5,9 +5,13 @@ package sdl
 
 #include <SDL2/SDL.h>
 
-const int kQuit = SDL_QUIT;
-const int kKeyDown = SDL_KEYDOWN;
-const int kKeyUp = SDL_KEYUP;
+const int kQuit 			= SDL_QUIT;
+const int kKeyDown 		= SDL_KEYDOWN;
+const int kKeyUp 		= SDL_KEYUP;
+const int kMouseMotion 	= SDL_MOUSEMOTION;
+const int kMouseDown 	= SDL_MOUSEBUTTONDOWN;
+const int kMouseUp 		= SDL_MOUSEBUTTONUP;
+const int kMouseWheel 	= SDL_MOUSEWHEEL;
 
 Uint32 getType(SDL_Event *ev) {
 	return ev->type;
@@ -19,38 +23,110 @@ SDL_Keycode getKeyCode(SDL_Event *ev) {
 */
 import "C"
 
-type KeyEventType int
-
-const (
-	KeyDown KeyEventType = iota
-	KeyUp
+import (
+	"unsafe"
 )
 
 type QuitEvent int
 type KeyEvent struct {
-	Type    KeyEventType
-	KeyCode uint32
+	Timestamp, WindowID, KeyCode uint32
+	State, Repeat                uint8
+}
+
+type KeyDownEvent KeyEvent
+type KeyUpEvent KeyEvent
+
+type MouseMotionEvent struct {
+	Timestamp, WindowID, MouseID, ButtonState uint32
+	X, Y, XRel, YRel                          int32
+}
+
+type MouseButtonEvent struct {
+	Timestamp, WindowID, MouseID uint32
+	Button, State, Clicks        uint8
+	X, Y                         int32
+}
+
+type MouseButtonDownEvent MouseButtonEvent
+type MouseButtonUpEvent MouseButtonEvent
+
+type MouseWheelEvent struct {
+	Timestamp, WindowID, MouseID uint32
+	X, Y                         int32
 }
 
 func HandleEvents(handler func(e interface{}) error) error {
 	var ev C.SDL_Event
 	for C.SDL_PollEvent(&ev) != 0 {
-		var err error
+		var gev interface{}
 		switch C.getType(&ev) {
 		case C.kQuit:
-			err = handler(QuitEvent(0))
+			gev = QuitEvent(0)
 		case C.kKeyDown:
-			err = handler(KeyEvent{
-				Type:    KeyDown,
-				KeyCode: uint32(C.getKeyCode(&ev)),
-			})
+			kev := (*C.SDL_KeyboardEvent)(unsafe.Pointer(&ev))
+			gev = KeyDownEvent{
+				Timestamp: uint32(kev.timestamp),
+				WindowID:  uint32(kev.windowID),
+				State:     uint8(kev.state),
+				Repeat:    uint8(kev.repeat),
+				KeyCode:   uint32(C.getKeyCode(&ev)),
+			}
 		case C.kKeyUp:
-			err = handler(KeyEvent{
-				Type:    KeyUp,
-				KeyCode: uint32(C.getKeyCode(&ev)),
-			})
+			kev := (*C.SDL_KeyboardEvent)(unsafe.Pointer(&ev))
+			gev = KeyUpEvent{
+				Timestamp: uint32(kev.timestamp),
+				WindowID:  uint32(kev.windowID),
+				State:     uint8(kev.state),
+				Repeat:    uint8(kev.repeat),
+				KeyCode:   uint32(C.getKeyCode(&ev)),
+			}
+		case C.kMouseMotion:
+			mmev := (*C.SDL_MouseMotionEvent)(unsafe.Pointer(&ev))
+			gev = MouseMotionEvent{
+				Timestamp:   uint32(mmev.timestamp),
+				WindowID:    uint32(mmev.windowID),
+				MouseID:     uint32(mmev.which),
+				ButtonState: uint32(mmev.state),
+				X:           int32(mmev.x),
+				Y:           int32(mmev.y),
+				XRel:        int32(mmev.xrel),
+				YRel:        int32(mmev.yrel),
+			}
+		case C.kMouseDown:
+			mbev := (*C.SDL_MouseButtonEvent)(unsafe.Pointer(&ev))
+			gev = MouseButtonDownEvent{
+				Timestamp: uint32(mbev.timestamp),
+				WindowID:  uint32(mbev.windowID),
+				MouseID:   uint32(mbev.which),
+				Button:    uint8(mbev.button),
+				State:     uint8(mbev.state),
+				Clicks:    uint8(mbev.clicks),
+				X:         int32(mbev.x),
+				Y:         int32(mbev.y),
+			}
+		case C.kMouseUp:
+			mbev := (*C.SDL_MouseButtonEvent)(unsafe.Pointer(&ev))
+			gev = MouseButtonUpEvent{
+				Timestamp: uint32(mbev.timestamp),
+				WindowID:  uint32(mbev.windowID),
+				MouseID:   uint32(mbev.which),
+				Button:    uint8(mbev.button),
+				State:     uint8(mbev.state),
+				Clicks:    uint8(mbev.clicks),
+				X:         int32(mbev.x),
+				Y:         int32(mbev.y),
+			}
+		case C.kMouseWheel:
+			mwev := (*C.SDL_MouseWheelEvent)(unsafe.Pointer(&ev))
+			gev = MouseWheelEvent{
+				Timestamp: uint32(mwev.timestamp),
+				WindowID:  uint32(mwev.windowID),
+				MouseID:   uint32(mwev.which),
+				X:         int32(mwev.x),
+				Y:         int32(mwev.y),
+			}
 		}
-		if err != nil {
+		if err := handler(gev); err != nil {
 			return err
 		}
 	}

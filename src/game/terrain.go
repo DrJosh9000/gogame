@@ -67,13 +67,13 @@ func NewTerrain(ctx *sdl.Context, lev *Level) (*Terrain, error) {
 		}
 		t.AddChild(l)
 	}
-	
+
 	if lev.HasExit {
 		e, err := NewExit(ctx)
 		if err != nil {
 			return nil, err
 		}
-		e.x, e.y = tileWidth * lev.ExitX, tileHeight * lev.ExitY - 16 // hax
+		e.x, e.y = tileWidth*lev.ExitX, tileHeight*lev.ExitY-16 // hax
 		t.exit = e
 		t.AddChild(e)
 	}

@@ -36,7 +36,7 @@ const (
 type Renderer struct {
 	// hahahahahaha
 	OffsetX, OffsetY int
-	renderer unsafe.Pointer
+	renderer         unsafe.Pointer
 }
 
 func (r *Renderer) r() *C.SDL_Renderer {

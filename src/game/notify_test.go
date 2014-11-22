@@ -6,6 +6,7 @@ import (
 )
 
 type testMessage int
+
 func (t testMessage) String() string {
 	return fmt.Sprintf("%d", int(t))
 }

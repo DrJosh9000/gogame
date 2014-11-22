@@ -20,7 +20,7 @@ func (m *message) String() string {
 }
 
 // notes keeps track of all registered channels.
-var notes = map[string][](chan message) {}
+var notes = map[string][](chan message){}
 
 // kmp stands for "keep me posted", and registers a callback channel
 // for messages sent to a given key.
@@ -35,7 +35,6 @@ func notify(key string, value messageValue) {
 	}
 }
 
-
 // Message body types.
 
 type basicMsg string
@@ -49,7 +48,7 @@ var (
 )
 
 type locationMsg struct {
-	o fmt.Stringer
+	o    fmt.Stringer
 	x, y int
 }
 

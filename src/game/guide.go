@@ -2,18 +2,18 @@ package game
 
 import (
 	"time"
-	
+
 	"sdl"
 )
 
 const (
 	keyGuideFrameWidth, keyGuideFrameHeight = 64, 64
-	keyGuideUpdateInterval = 500 * time.Millisecond
-	keyGuideTextureFile = "assets/keys.png"
-	
+	keyGuideUpdateInterval                  = 500 * time.Millisecond
+	keyGuideTextureFile                     = "assets/keys.png"
 )
 
 type KeyGuide int
+
 const (
 	KeyGuideA KeyGuide = iota
 	KeyGuideD
@@ -21,10 +21,10 @@ const (
 )
 
 type Guide struct {
-	tex *sdl.Texture
+	tex         *sdl.Texture
 	x, y, frame int
 	KeyGuide
-	
+
 	Updater *time.Ticker
 }
 
@@ -33,11 +33,11 @@ func NewGuide(ctx *sdl.Context, k KeyGuide) (*Guide, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	g := &Guide{
-		tex: tex,
+		tex:      tex,
 		KeyGuide: k,
-		Updater: time.NewTicker(keyGuideUpdateInterval),
+		Updater:  time.NewTicker(keyGuideUpdateInterval),
 	}
 	go g.life()
 	return g, nil
@@ -53,6 +53,6 @@ func (g *Guide) Destroy() {
 
 func (g *Guide) life() {
 	for _ = range g.Updater.C {
-		g.frame = (g.frame+1)%2
+		g.frame = (g.frame + 1) % 2
 	}
 }

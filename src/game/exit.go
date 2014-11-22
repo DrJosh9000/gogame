@@ -3,17 +3,18 @@ package game
 import (
 	"fmt"
 	"time"
-	
+
 	"sdl"
 )
 
 const (
-	exitFile = "assets/door.png"
-	exitFrames = 4
+	exitFile                        = "assets/door.png"
+	exitFrames                      = 4
 	exitFrameWidth, exitFrameHeight = 64, 64
 )
 
 type DoorState int
+
 const (
 	DoorStateClosed DoorState = iota
 	DoorStateOpen
@@ -24,8 +25,8 @@ type Exit struct {
 	tex *sdl.Texture
 	DoorState
 	x, y, frame int
-	
-	inbox chan message
+
+	inbox   chan message
 	updater *time.Ticker
 }
 
@@ -35,8 +36,8 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 		return nil, err
 	}
 	e := &Exit{
-		tex: tex,
-		inbox: make(chan message, 10),
+		tex:     tex,
+		inbox:   make(chan message, 10),
 		updater: time.NewTicker(100 * time.Millisecond),
 	}
 	kmp("global", e.inbox)
@@ -45,8 +46,8 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 	return e, nil
 }
 
-func (e *Exit) AddChild(Object) {}
-func (e *Exit) Children() []Object {return nil}
+func (e *Exit) AddChild(Object)    {}
+func (e *Exit) Children() []Object { return nil }
 
 func (e *Exit) Destroy() {
 	e.updater.Stop()
@@ -60,7 +61,7 @@ func (e *Exit) String() string {
 	return fmt.Sprintf("%T", e)
 }
 
-func (e* Exit) life() {
+func (e *Exit) life() {
 	for {
 		select {
 		case msg := <-e.inbox:
@@ -74,19 +75,18 @@ func (e* Exit) life() {
 					// If the player is near the door, open it;
 					// If the player is not near the door, close it.
 					if e.DoorState == DoorStateClosed &&
-						m.x > e.x - 200 && m.x < e.x + 200 &&
-						m.y > e.y - 200 && m.y < e.y + 200 {
+						m.x > e.x-200 && m.x < e.x+200 &&
+						m.y > e.y-200 && m.y < e.y+200 {
 						e.DoorState = DoorStateOpen
 					}
-					if e.DoorState == DoorStateOpen && (
-						m.x <= e.x - 200 || m.x >= e.x + 200 ||
-						m.y <= e.y - 200 || m.y >= e.y + 200) {
+					if e.DoorState == DoorStateOpen && (m.x <= e.x-200 || m.x >= e.x+200 ||
+						m.y <= e.y-200 || m.y >= e.y+200) {
 						e.DoorState = DoorStateClosed
 					}
 				}
 			}
 		case <-e.updater.C:
-			switch  {
+			switch {
 			case e.DoorState == DoorStateClosed && e.frame > 0:
 				e.frame--
 			case e.DoorState == DoorStateOpen && e.frame < 3:

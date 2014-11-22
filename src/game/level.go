@@ -8,22 +8,22 @@ import (
 )
 
 type TileProps struct {
-	index int
+	index         int
 	solid, deadly bool
 }
 
 // Row, Column
 type LevelLayer [][]TileProps
 type Level struct {
-	Map []LevelLayer
+	Map            []LevelLayer
 	StartX, StartY int
-	HasExit bool
-	ExitX, ExitY int
+	HasExit        bool
+	ExitX, ExitY   int
 }
 
 var (
 	transparentTile = TileProps{index: 0}
-	tileMap = map[byte]TileProps {
+	tileMap         = map[byte]TileProps{
 		' ': transparentTile,
 		'.': {index: 1}, // space panel
 		// 2: currently blank
@@ -34,11 +34,11 @@ var (
 		'[': {index: 7},
 		'_': {index: 8},
 		// 9: currently blank
-		'z': {index: 10, solid:false},
-		'x': {index: 11, solid:true},
-		'c': {index: 12, solid:true},
-		'v': {index: 13, solid:true},
-		'b': {index: 14, solid:false},
+		'z': {index: 10, solid: false},
+		'x': {index: 11, solid: true},
+		'c': {index: 12, solid: true},
+		'v': {index: 13, solid: true},
+		'b': {index: 14, solid: false},
 		']': {index: 15},
 		',': {index: 16},
 		// 17, 18: currently blank
@@ -62,12 +62,12 @@ var (
 		'Y': {index: 36, solid: false},
 		'T': {index: 37, solid: false},
 		')': {index: 38},
-		
+
 		'*': transparentTile, // Start position
 		'X': transparentTile, // Exit
 	}
 	outOfBounds = TileProps{solid: true}
-	
+
 	loadedMaps = make(map[string]*Level)
 )
 
@@ -75,13 +75,13 @@ func LoadLevel(name string) (*Level, error) {
 	if m, ok := loadedMaps[name]; ok {
 		return m, nil
 	}
-	
+
 	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-	
+
 	width := 32
 	l := &Level{}
 	var m LevelLayer
@@ -112,7 +112,7 @@ func LoadLevel(name string) (*Level, error) {
 				continue
 			}
 		}
-		
+
 		var r []TileProps
 		for j, c := range []byte(line) {
 			switch c {
@@ -132,7 +132,7 @@ func LoadLevel(name string) (*Level, error) {
 		}
 		// Ensure the row is the right length.
 		if len(r) < width {
-			for i:=len(r); i<width; i++ {
+			for i := len(r); i < width; i++ {
 				r = append(r, transparentTile)
 			}
 		}
@@ -141,7 +141,7 @@ func LoadLevel(name string) (*Level, error) {
 	if err := sc.Err(); err != nil {
 		return nil, err
 	}
-	
+
 	loadedMaps[name] = l
 	return l, nil
 }
