@@ -19,7 +19,7 @@ const (
 var gameInstance *Game
 
 type Game struct {
-	Base
+	ComplexBase
 	ctx              *sdl.Context
 	t0               time.Time
 	ticker           *time.Ticker
@@ -131,14 +131,14 @@ func (g *Game) Draw(r *sdl.Renderer) error {
 	}
 
 	// Draw everything else
-	return g.Base.Draw(r)
+	return g.ComplexBase.Draw(r)
 }
 
 func (g *Game) Destroy() {
 	notify("game", quitMsg)
 	g.player.Controller <- Quit
 	//	g.ticker.Stop()
-	g.Base.Destroy()
+	g.ComplexBase.Destroy()
 }
 
 func (g *Game) Level() *Level {
@@ -152,7 +152,7 @@ func (g *Game) HandleEvent(ev interface{}) error {
 		case ' ':
 			g.player.Controller <- StartJump
 		case 'w':
-			fmt.Println("up")
+			fmt.Println("w down")
 		case 'a':
 			g.player.Controller <- StartWalkLeft
 		case 's':
@@ -165,11 +165,11 @@ func (g *Game) HandleEvent(ev interface{}) error {
 		case ' ':
 			g.player.Controller <- StopJump
 		case 'w':
-			fmt.Println("up")
+			fmt.Println("w up")
 		case 'a':
 			g.player.Controller <- StopWalkLeft
 		case 's':
-			fmt.Println("down")
+			fmt.Println("s up")
 		case 'd':
 			g.player.Controller <- StopWalkRight
 		case 'e':

@@ -46,9 +46,6 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 	return e, nil
 }
 
-func (e *Exit) AddChild(Object)    {}
-func (e *Exit) Children() []Object { return nil }
-
 func (e *Exit) Destroy() {
 	e.updater.Stop()
 }

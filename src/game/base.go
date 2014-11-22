@@ -7,26 +7,30 @@ import (
 )
 
 type Object interface {
-	AddChild(Object)
-	Children() []Object
 	Destroy()
 	Draw(*sdl.Renderer) error
 	String() string
 }
 
-type Base struct {
+type ComplexObject interface {
+	Object
+	AddChild(Object)
+	Children() []Object
+}
+
+type ComplexBase struct {
 	children []Object
 }
 
-func (b *Base) AddChild(c Object) {
+func (b *ComplexBase) AddChild(c Object) {
 	b.children = append(b.children, c)
 }
 
-func (b *Base) Children() []Object {
+func (b *ComplexBase) Children() []Object {
 	return b.children
 }
 
-func (b *Base) Draw(r *sdl.Renderer) error {
+func (b *ComplexBase) Draw(r *sdl.Renderer) error {
 	for _, c := range b.children {
 		if c != nil {
 			if err := c.Draw(r); err != nil {
@@ -37,7 +41,7 @@ func (b *Base) Draw(r *sdl.Renderer) error {
 	return nil
 }
 
-func (b *Base) Destroy() {
+func (b *ComplexBase) Destroy() {
 	for _, c := range b.children {
 		if c != nil {
 			c.Destroy()
@@ -45,6 +49,6 @@ func (b *Base) Destroy() {
 	}
 }
 
-func (b *Base) String() string {
+func (b *ComplexBase) String() string {
 	return fmt.Sprintf("%T", b)
 }

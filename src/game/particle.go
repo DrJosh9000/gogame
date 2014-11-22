@@ -6,7 +6,7 @@ import (
 )
 
 type Particle struct {
-	Base
+	ComplexBase
 	x, y int32
 }
 

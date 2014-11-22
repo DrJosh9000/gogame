@@ -17,7 +17,7 @@ type tile struct {
 }
 
 type layer struct {
-	Base
+	ComplexBase
 	tiles []tile
 	tex   *sdl.Texture
 }
@@ -54,7 +54,7 @@ func (l *layer) Draw(r *sdl.Renderer) error {
 }
 
 type Terrain struct {
-	Base
+	ComplexBase
 	exit *Exit
 }
 

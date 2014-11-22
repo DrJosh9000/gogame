@@ -56,7 +56,6 @@ const (
 )
 
 type Player struct {
-	Base
 	tex        *sdl.Texture
 	lastUpdate time.Duration
 
@@ -108,6 +107,10 @@ func (p *Player) Draw(r *sdl.Renderer) error {
 func (p *Player) Destroy() {
 	close(p.Controller)
 	p.Updater.Stop()
+}
+
+func (p *Player) String() string {
+	return "player"
 }
 
 func (p *Player) update(t time.Duration) {
