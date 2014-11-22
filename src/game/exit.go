@@ -1,17 +1,19 @@
 package game
 
 import (
-	"fmt"
 	"time"
 
 	"sdl"
 )
 
-const (
-	exitFile                        = "assets/door.png"
-	exitFrames                      = 4
-	exitFrameWidth, exitFrameHeight = 64, 64
-)
+var exitTemplate = &spriteTemplate{
+	name:        "exit",
+	sheetFile:   "assets/door.png",
+	framesX:     4,
+	framesY:     1,
+	frameWidth:  64,
+	frameHeight: 64,
+}
 
 type DoorState int
 
@@ -22,21 +24,20 @@ const (
 )
 
 type Exit struct {
-	tex *sdl.Texture
+	*sprite
 	DoorState
-	x, y, frame int
 
 	inbox   chan message
 	updater *time.Ticker
 }
 
 func NewExit(ctx *sdl.Context) (*Exit, error) {
-	tex, err := ctx.GetTexture(exitFile)
+	s, err := exitTemplate.new(ctx)
 	if err != nil {
 		return nil, err
 	}
 	e := &Exit{
-		tex:     tex,
+		sprite:  s,
 		inbox:   make(chan message, 10),
 		updater: time.NewTicker(100 * time.Millisecond),
 	}
@@ -48,14 +49,6 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 
 func (e *Exit) Destroy() {
 	e.updater.Stop()
-}
-
-func (e *Exit) Draw(r *sdl.Renderer) error {
-	return r.Copy(e.tex, sdl.Rect(e.frame*exitFrameWidth, 0, exitFrameWidth, exitFrameHeight), sdl.Rect(e.x, e.y, exitFrameWidth, exitFrameHeight))
-}
-
-func (e *Exit) String() string {
-	return fmt.Sprintf("%T", e)
 }
 
 func (e *Exit) life() {
