@@ -29,11 +29,15 @@ type sprite struct {
 	template    *spriteTemplate
 	x, y, frame int
 	tex         *sdl.Texture
+	invisible   bool
 }
 
 func (s *sprite) destroy() {}
 
 func (s *sprite) draw(r renderer) error {
+	if s.invisible {
+		return nil
+	}
 	srcX := (s.frame % s.template.framesX) * s.template.frameWidth
 	srcY := ((s.frame / s.template.framesX) % s.template.framesY) * s.template.frameHeight
 	return r.Copy(s.tex,

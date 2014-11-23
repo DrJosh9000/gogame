@@ -12,12 +12,28 @@ const int kMouseMotion 	= SDL_MOUSEMOTION;
 const int kMouseDown 	= SDL_MOUSEBUTTONDOWN;
 const int kMouseUp 		= SDL_MOUSEBUTTONUP;
 const int kMouseWheel 	= SDL_MOUSEWHEEL;
+const int kWindow	    = SDL_WINDOWEVENT;
 
 const unsigned int kMouseLeftMask   = SDL_BUTTON_LMASK;
 const unsigned int kMouseMiddleMask = SDL_BUTTON_MMASK;
 const unsigned int kMouseRightMask  = SDL_BUTTON_RMASK;
 const unsigned int kMouseX1Mask     = SDL_BUTTON_X1MASK;
 const unsigned int kMouseX2Mask     = SDL_BUTTON_X2MASK;
+
+const unsigned char kWindowEventShown       = SDL_WINDOWEVENT_SHOWN;
+const unsigned char kWindowEventHidden      = SDL_WINDOWEVENT_HIDDEN;
+const unsigned char kWindowEventExposed     = SDL_WINDOWEVENT_EXPOSED;
+const unsigned char kWindowEventMoved       = SDL_WINDOWEVENT_MOVED;
+const unsigned char kWindowEventResized     = SDL_WINDOWEVENT_RESIZED;
+const unsigned char kWindowEventSizeChanged = SDL_WINDOWEVENT_SIZE_CHANGED;
+const unsigned char kWindowEventMinimized   = SDL_WINDOWEVENT_MINIMIZED;
+const unsigned char kWindowEventMaximized   = SDL_WINDOWEVENT_MAXIMIZED;
+const unsigned char kWindowEventRestored    = SDL_WINDOWEVENT_RESTORED;
+const unsigned char kWindowEventEnter       = SDL_WINDOWEVENT_ENTER;
+const unsigned char kWindowEventLeave       = SDL_WINDOWEVENT_LEAVE;
+const unsigned char kWindowEventFocusGained = SDL_WINDOWEVENT_FOCUS_GAINED;
+const unsigned char kWindowEventFocusLost   = SDL_WINDOWEVENT_FOCUS_LOST;
+const unsigned char kWindowEventClose       = SDL_WINDOWEVENT_CLOSE;
 
 Uint32 getType(SDL_Event *ev) {
 	return ev->type;
@@ -56,17 +72,42 @@ type MouseButtonEvent struct {
 type MouseButtonDownEvent MouseButtonEvent
 type MouseButtonUpEvent MouseButtonEvent
 
-type MouseWheelEvent struct {
-	Timestamp, WindowID, MouseID uint32
-	X, Y                         int
-}
-
 const (
 	MouseLeftMask   = uint32(C.kMouseLeftMask)
 	MouseMiddleMask = uint32(C.kMouseMiddleMask)
 	MouseRightMask  = uint32(C.kMouseRightMask)
 	MouseX1Mask     = uint32(C.kMouseX1Mask)
 	MouseX2Mask     = uint32(C.kMouseX2Mask)
+)
+
+type MouseWheelEvent struct {
+	Timestamp, WindowID, MouseID uint32
+	X, Y                         int
+}
+
+type WindowEvent struct {
+	Timestamp, WindowID uint32
+	EventID             WindowEventID
+	Data1, Data2        int32
+}
+
+type WindowEventID uint8
+
+const (
+	WindowShown       = WindowEventID(C.kWindowEventShown)
+	WindowHidden      = WindowEventID(C.kWindowEventHidden)
+	WindowExposed     = WindowEventID(C.kWindowEventExposed)
+	WindowMoved       = WindowEventID(C.kWindowEventMoved)
+	WindowResized     = WindowEventID(C.kWindowEventResized)
+	WindowSizeChanged = WindowEventID(C.kWindowEventSizeChanged)
+	WindowMinimized   = WindowEventID(C.kWindowEventMinimized)
+	WindowMaximized   = WindowEventID(C.kWindowEventMaximized)
+	WindowRestored    = WindowEventID(C.kWindowEventRestored)
+	WindowEnter       = WindowEventID(C.kWindowEventEnter)
+	WindowLeave       = WindowEventID(C.kWindowEventLeave)
+	WindowFocusGained = WindowEventID(C.kWindowEventFocusGained)
+	WindowFocusLost   = WindowEventID(C.kWindowEventFocusLost)
+	WindowClose       = WindowEventID(C.kWindowEventClose)
 )
 
 func HandleEvents(handler func(e interface{}) error) error {
@@ -138,6 +179,15 @@ func HandleEvents(handler func(e interface{}) error) error {
 				MouseID:   uint32(mwev.which),
 				X:         int(mwev.x),
 				Y:         int(mwev.y),
+			}
+		case C.kWindow:
+			wev := (*C.SDL_WindowEvent)(unsafe.Pointer(&ev))
+			gev = WindowEvent{
+				Timestamp: uint32(wev.timestamp),
+				WindowID:  uint32(wev.windowID),
+				EventID:   WindowEventID(wev.event),
+				Data1:     int32(wev.data1),
+				Data2:     int32(wev.data2),
 			}
 		}
 		if err := handler(gev); err != nil {

@@ -6,12 +6,14 @@ package sdl
 #include <SDL2/SDL.h>
 
 const int kInitEverything = SDL_INIT_EVERYTHING;
-const int kInitVideo = SDL_INIT_VIDEO;
+const int kInitVideo      = SDL_INIT_VIDEO;
+
 const char* kHintRenderScaleQuality = SDL_HINT_RENDER_SCALE_QUALITY;
 */
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -21,8 +23,8 @@ func Delay(delay uint32) {
 }
 
 // Err returns the last error as a string from an SDL library call.
-func Err() string {
-	return C.GoString(C.SDL_GetError())
+func Err() error {
+	return errors.New(C.GoString(C.SDL_GetError()))
 }
 
 type Color struct {

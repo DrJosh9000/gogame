@@ -172,7 +172,7 @@ func (g *Game) HandleEvent(ev interface{}) error {
 			g.currentLevel = (g.currentLevel + 1) % 2
 			g.player.controller <- Teleport
 		}
-	case sdl.MouseButtonDownEvent, sdl.MouseButtonUpEvent, sdl.MouseMotionEvent:
+	case sdl.MouseButtonDownEvent, sdl.MouseButtonUpEvent, sdl.MouseMotionEvent, sdl.WindowEvent:
 		g.cursor.controller <- v
 	}
 	return nil
