@@ -97,6 +97,12 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	g.world.addChild(p)
 	g.hud.addChild(c)
 
+	testText, err := newText(ctx, "Hello World!", sdl.WhiteColour)
+	if err != nil {
+		return nil, err
+	}
+	g.hud.addChild(testText)
+
 	kmp("player.location", g.inbox)
 	go g.messageLoop()
 

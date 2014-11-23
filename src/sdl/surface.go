@@ -43,3 +43,7 @@ func NewSurface(s *C.SDL_Surface) *Surface {
 	})
 	return r
 }
+
+func (s *Surface) Size() (w, h int) {
+	return int(s.s().w), int(s.s().h)
+}

@@ -41,6 +41,7 @@ func (c *Colour) c() C.SDL_Color {
 }
 
 var BlackColour = Colour{0x00, 0x00, 0x00, 0xff}
+var WhiteColour = Colour{0xff, 0xff, 0xff, 0xff}
 
 type Point struct {
 	X, Y int
