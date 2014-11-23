@@ -21,7 +21,7 @@ type layer struct {
 	ComplexBase
 }
 
-func newLayer(ctx *sdl.Context, m LevelLayer) (*layer, error) {
+func newLayer(ctx *sdl.Context, m levelLayer) (*layer, error) {
 	l := &layer{}
 	for i := 0; i < len(m); i++ {
 		for j := 0; j < len(m[i]); j++ {
@@ -40,14 +40,14 @@ func newLayer(ctx *sdl.Context, m LevelLayer) (*layer, error) {
 	return l, nil
 }
 
-type Terrain struct {
+type terrain struct {
 	ComplexBase
-	exit *Exit
+	exit *exit
 }
 
-func NewTerrain(ctx *sdl.Context, lev *Level) (*Terrain, error) {
-	t := &Terrain{}
-	for _, m := range lev.Map {
+func newTerrain(ctx *sdl.Context, lev *level) (*terrain, error) {
+	t := &terrain{}
+	for _, m := range lev.levelMap {
 		l, err := newLayer(ctx, m)
 		if err != nil {
 			return nil, err
@@ -55,12 +55,12 @@ func NewTerrain(ctx *sdl.Context, lev *Level) (*Terrain, error) {
 		t.AddChild(l)
 	}
 
-	if lev.HasExit {
-		e, err := NewExit(ctx)
+	if lev.hasExit {
+		e, err := newExit(ctx)
 		if err != nil {
 			return nil, err
 		}
-		e.x, e.y = tileTemplate.frameWidth*lev.ExitX, tileTemplate.frameHeight*lev.ExitY-16 // hax
+		e.x, e.y = tileTemplate.frameWidth*lev.exitX, tileTemplate.frameHeight*lev.exitY-16 // hax
 		t.exit = e
 		t.AddChild(e)
 	}

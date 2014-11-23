@@ -24,7 +24,7 @@ func newCursor(ctx *sdl.Context) (*cursor, error) {
 		return nil, err
 	}
 	c := &cursor{
-		sprite: s,
+		sprite:     s,
 		controller: make(chan sdl.MouseMotionEvent, 3),
 	}
 	go c.life()
@@ -37,7 +37,7 @@ func (c *cursor) Destroy() {
 
 func (c *cursor) life() {
 	for ev := range c.controller {
-		c.x = ev.X - cursorTemplate.frameWidth / 2
-		c.y = ev.Y - cursorTemplate.frameHeight / 2
+		c.x = ev.X - cursorTemplate.frameWidth/2
+		c.y = ev.Y - cursorTemplate.frameHeight/2
 	}
 }

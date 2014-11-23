@@ -34,7 +34,7 @@ const (
 )
 
 type Renderer struct {
-	renderer         unsafe.Pointer
+	renderer unsafe.Pointer
 }
 
 func (r *Renderer) r() *C.SDL_Renderer {

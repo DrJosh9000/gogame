@@ -27,27 +27,27 @@ const (
 	playerTau = 0.1
 )
 
-type Facing int
+type playerFacing int
 
 const (
-	Left Facing = iota
+	Left playerFacing = iota
 	Right
 )
 
-type Animation int
+type playerAnimation int
 
 const (
-	Standing Animation = iota
+	Standing playerAnimation = iota
 	Walking
 	Jumping
 	Falling
 	Floating
 )
 
-type Control int
+type playerControl int
 
 const (
-	Quit Control = iota
+	Quit playerControl = iota
 	StartWalkLeft
 	StopWalkLeft
 	StartWalkRight
@@ -60,48 +60,48 @@ const (
 	Teleport
 )
 
-type Player struct {
+type player struct {
 	*sprite
 	lastUpdate time.Duration
 
-	Controller chan Control
-	Updater    *time.Ticker
+	controller chan playerControl
+	updater    *time.Ticker
 
 	// All struct elements below should be controlled only by the life goroutine.
-	facing                   Facing
-	anim                     Animation
+	facing                   playerFacing
+	anim                     playerAnimation
 	wx, wy                   float64
 	fx, fy, dx, dy, ddx, ddy float64
 }
 
-func NewPlayer(ctx *sdl.Context) (*Player, error) {
+func newPlayer(ctx *sdl.Context) (*player, error) {
 	s, err := playerTemplate.new(ctx)
 	if err != nil {
 		return nil, err
 	}
-	p := &Player{
+	p := &player{
 		sprite:     s,
-		fx:         64,
+		fx:         64, // TODO: ohgod fix
 		fy:         768 - 64,
 		facing:     Right,
 		anim:       Standing,
-		Controller: make(chan Control),
-		Updater:    time.NewTicker(playerUpdateInterval),
+		controller: make(chan playerControl),
+		updater:    time.NewTicker(playerUpdateInterval),
 	}
 	go p.life()
 	return p, nil
 }
 
-func (p *Player) Destroy() {
-	close(p.Controller)
-	p.Updater.Stop()
+func (p *player) Destroy() {
+	close(p.controller)
+	p.updater.Stop()
 }
 
-func (p *Player) String() string {
+func (p *player) String() string {
 	return "player"
 }
 
-func (p *Player) update(t time.Duration) {
+func (p *player) update(t time.Duration) {
 	if p.lastUpdate == 0 {
 		p.lastUpdate = t
 		return
@@ -138,19 +138,19 @@ func (p *Player) update(t time.Duration) {
 
 	switch p.anim {
 	case Standing, Walking:
-		if !gameInstance.Level().IsPointSolid(nx, ny+32) && !gameInstance.Level().IsPointSolid(nx+31, ny+32) {
+		if !gameInstance.level().isPointSolid(nx, ny+32) && !gameInstance.level().isPointSolid(nx+31, ny+32) {
 			p.anim = Falling
 			p.ddy = playerGravity
 		}
 	case Falling:
-		if gameInstance.Level().IsPointSolid(nx, ny+32) {
+		if gameInstance.level().isPointSolid(nx, ny+32) {
 			p.anim = Standing
 			ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
 			p.fy = float64(ny)
 			p.dy = 0
 			p.ddy = 0
 		}
-		if gameInstance.Level().IsPointSolid(nx+31, ny+32) {
+		if gameInstance.level().isPointSolid(nx+31, ny+32) {
 			p.anim = Standing
 			ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
 			p.fy = float64(ny)
@@ -158,12 +158,12 @@ func (p *Player) update(t time.Duration) {
 			p.ddy = 0
 		}
 	}
-	if gameInstance.Level().IsPointSolid(nx, ny+31) {
+	if gameInstance.level().isPointSolid(nx, ny+31) {
 		nx = ((nx / tileTemplate.frameWidth) + 1) * tileTemplate.frameWidth
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
-	if gameInstance.Level().IsPointSolid(nx+31, ny+31) {
+	if gameInstance.level().isPointSolid(nx+31, ny+31) {
 		nx = (nx / tileTemplate.frameWidth) * tileTemplate.frameWidth
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
@@ -174,7 +174,7 @@ func (p *Player) update(t time.Duration) {
 	notify("player.location", locationMsg{o: p, x: p.x, y: p.y})
 }
 
-func (p *Player) control(ctl Control) bool {
+func (p *player) control(ctl playerControl) bool {
 	switch ctl {
 	case Quit:
 		return true
@@ -230,15 +230,15 @@ func (p *Player) control(ctl Control) bool {
 	return false
 }
 
-func (p *Player) life() {
+func (p *player) life() {
 	t0 := time.Now()
 	for {
 		select {
-		case c := <-p.Controller:
+		case c := <-p.controller:
 			if p.control(c) {
 				return
 			}
-		case t := <-p.Updater.C:
+		case t := <-p.updater.C:
 			p.update(t.Sub(t0))
 		}
 	}

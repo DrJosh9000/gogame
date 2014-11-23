@@ -19,23 +19,24 @@ const (
 var gameInstance *Game
 
 type Game struct {
-	ctx              *sdl.Context
-	t0               time.Time
-	ticker           *time.Ticker
-	inbox            chan message
-	
-	sr 			 *sdl.Renderer
-	wr			 *worldRenderer
-	world		 ComplexBase
-	hud		     ComplexBase
-	
+	ctx    *sdl.Context
+	t0     time.Time
+	ticker *time.Ticker
+	inbox  chan message
+
+	sr    *sdl.Renderer
+	wr    *worldRenderer
+	world ComplexBase
+	hud   ComplexBase
+
 	// Special game objects.
 	// TODO: OHDOG
-	cursor 		 *cursor
-	player       *Player
-	exit         *Exit
-	levels       [2]*Level
-	terrains     [2]*Terrain
+	// cursor: keep this around to send mouse events to directly.
+	cursor       *cursor
+	player       *player
+	exit         *exit
+	levels       [2]*level
+	terrains     [2]*terrain
 	currentLevel int
 }
 
@@ -43,31 +44,31 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	if gameInstance != nil {
 		return gameInstance, nil
 	}
-	
+
 	c, err := newCursor(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	p, err := NewPlayer(ctx)
+	p, err := newPlayer(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	m0, err := LoadLevel(level1AFile)
+	m0, err := loadLevel(level1AFile)
 	if err != nil {
 		return nil, err
 	}
-	m1, err := LoadLevel(level1BFile)
+	m1, err := loadLevel(level1BFile)
 	if err != nil {
 		return nil, err
 	}
 
-	t0, err := NewTerrain(ctx, m0)
+	t0, err := newTerrain(ctx, m0)
 	if err != nil {
 		return nil, err
 	}
-	t1, err := NewTerrain(ctx, m1)
+	t1, err := newTerrain(ctx, m1)
 	if err != nil {
 		return nil, err
 	}
@@ -78,20 +79,21 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		//ticker: time.NewTicker(gameTickerDuration),
 		sr: ctx.Renderer,
 		wr: &worldRenderer{
-			r: ctx.Renderer,
-			view: sdl.Rect{ 0, 0, 1024, 768 },
-			world: sdl.Rect{ 0, 0, 3072, 768 }, // TODO: derive from terrain
+			r:     ctx.Renderer,
+			view:  sdl.Rect{0, 0, 1024, 768},
+			world: sdl.Rect{0, 0, 3072, 768}, // TODO: derive from terrain
 		},
 		inbox:        make(chan message, 10),
-		cursor:		  c,
+		cursor:       c,
 		player:       p,
-		levels:       [2]*Level{m0, m1},
-		terrains:     [2]*Terrain{t0, t1},
+		levels:       [2]*level{m0, m1},
+		terrains:     [2]*terrain{t0, t1},
 		currentLevel: 0,
 	}
 	gameInstance = g
-	p.x, p.y = tileTemplate.frameWidth*m0.StartX, tileTemplate.frameHeight*m0.StartY
-	
+	p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
+	g.wr.focus(p.x, p.y)
+
 	g.world.AddChild(p)
 	g.hud.AddChild(c)
 
@@ -122,20 +124,20 @@ func (g *Game) Draw() error {
 	if err := g.world.Draw(g.wr); err != nil {
 		return err
 	}
-	
+
 	// Draw the HUD in screen coordinates.
 	return g.hud.Draw(g.sr)
 }
 
 func (g *Game) Destroy() {
 	notify("game", quitMsg)
-	g.player.Controller <- Quit
+	g.player.controller <- Quit
 	//	g.ticker.Stop()
 	g.world.Destroy()
 	g.hud.Destroy()
 }
 
-func (g *Game) Level() *Level {
+func (g *Game) level() *level {
 	return g.levels[g.currentLevel]
 }
 
@@ -144,31 +146,31 @@ func (g *Game) HandleEvent(ev interface{}) error {
 	case sdl.KeyDownEvent:
 		switch v.KeyCode {
 		case ' ':
-			g.player.Controller <- StartJump
+			g.player.controller <- StartJump
 		case 'w':
 			fmt.Println("w down")
 		case 'a':
-			g.player.Controller <- StartWalkLeft
+			g.player.controller <- StartWalkLeft
 		case 's':
 			fmt.Println("s down")
 		case 'd':
-			g.player.Controller <- StartWalkRight
+			g.player.controller <- StartWalkRight
 		}
 	case sdl.KeyUpEvent:
 		switch v.KeyCode {
 		case ' ':
-			g.player.Controller <- StopJump
+			g.player.controller <- StopJump
 		case 'w':
 			fmt.Println("w up")
 		case 'a':
-			g.player.Controller <- StopWalkLeft
+			g.player.controller <- StopWalkLeft
 		case 's':
 			fmt.Println("s up")
 		case 'd':
-			g.player.Controller <- StopWalkRight
+			g.player.controller <- StopWalkRight
 		case 'e':
 			g.currentLevel = (g.currentLevel + 1) % 2
-			g.player.Controller <- Teleport
+			g.player.controller <- Teleport
 		}
 	case sdl.MouseMotionEvent:
 		g.cursor.controller <- v
@@ -177,10 +179,12 @@ func (g *Game) HandleEvent(ev interface{}) error {
 }
 
 type worldRenderer struct {
-	r Renderer
+	r           Renderer
 	view, world sdl.Rect
 }
 
+// focus moves the world renderer viewport to include the point. Generally this
+// would be used to focus on the player. It snaps immediately, no smoothing.
 func (r *worldRenderer) focus(x, y int) {
 	// Keep the point in view.
 	left, right := r.view.W/4, 3*r.view.W/4
@@ -194,10 +198,10 @@ func (r *worldRenderer) focus(x, y int) {
 	if r.view.X < r.world.X {
 		r.view.X = r.world.X
 	}
-	if r.view.X + r.view.W > r.world.X + r.world.W {
+	if r.view.X+r.view.W > r.world.X+r.world.W {
 		r.view.X = r.world.X + r.world.W - r.view.W
 	}
-	
+
 	top, bottom := r.view.H/4, 3*r.view.H/4
 	if y-r.view.Y < top {
 		r.view.Y = y - top
@@ -208,7 +212,7 @@ func (r *worldRenderer) focus(x, y int) {
 	if r.view.Y < r.world.Y {
 		r.view.Y = r.world.Y
 	}
-	if r.view.Y + r.view.H > r.world.Y + r.world.H {
+	if r.view.Y+r.view.H > r.world.Y+r.world.H {
 		r.view.Y = r.world.Y + r.world.H - r.view.H
 	}
 }
@@ -226,4 +230,3 @@ func (r *worldRenderer) CopyEx(t *sdl.Texture, src, dst sdl.Rect, angle float64,
 	center.Y -= r.view.Y
 	return r.r.CopyEx(t, src, dst, angle, center, flip)
 }
-

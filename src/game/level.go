@@ -7,23 +7,23 @@ import (
 	"strconv"
 )
 
-type TileProps struct {
+type tileProps struct {
 	index         int
 	solid, deadly bool
 }
 
 // Row, Column
-type LevelLayer [][]TileProps
-type Level struct {
-	Map            []LevelLayer
-	StartX, StartY int
-	HasExit        bool
-	ExitX, ExitY   int
+type levelLayer [][]tileProps
+type level struct {
+	levelMap       []levelLayer
+	startX, startY int
+	hasExit        bool
+	exitX, exitY   int
 }
 
 var (
-	transparentTile = TileProps{index: 0}
-	tileMap         = map[byte]TileProps{
+	transparentTile = tileProps{index: 0}
+	tileMap         = map[byte]tileProps{
 		' ': transparentTile,
 		'.': {index: 1}, // space panel
 		// 2: currently blank
@@ -66,12 +66,12 @@ var (
 		'*': transparentTile, // Start position
 		'X': transparentTile, // Exit
 	}
-	outOfBounds = TileProps{solid: true}
+	outOfBounds = tileProps{solid: true}
 
-	loadedMaps = make(map[string]*Level)
+	loadedMaps = make(map[string]*level)
 )
 
-func LoadLevel(name string) (*Level, error) {
+func loadLevel(name string) (*level, error) {
 	if m, ok := loadedMaps[name]; ok {
 		return m, nil
 	}
@@ -83,8 +83,8 @@ func LoadLevel(name string) (*Level, error) {
 	defer f.Close()
 
 	width := 32
-	l := &Level{}
-	var m LevelLayer
+	l := &level{}
+	var m levelLayer
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		line := sc.Text()
@@ -108,21 +108,21 @@ func LoadLevel(name string) (*Level, error) {
 				continue
 			}
 			if line == "}" {
-				l.Map = append(l.Map, m)
+				l.levelMap = append(l.levelMap, m)
 				continue
 			}
 		}
 
-		var r []TileProps
+		var r []tileProps
 		for j, c := range []byte(line) {
 			switch c {
 			case '*':
-				l.StartX = j
-				l.StartY = len(m)
+				l.startX = j
+				l.startY = len(m)
 			case 'X':
-				l.HasExit = true
-				l.ExitX = j
-				l.ExitY = len(m)
+				l.hasExit = true
+				l.exitX = j
+				l.exitY = len(m)
 			}
 			t, ok := tileMap[c]
 			if !ok {
@@ -146,7 +146,7 @@ func LoadLevel(name string) (*Level, error) {
 	return l, nil
 }
 
-func (l LevelLayer) QueryPoint(x, y int) TileProps {
+func (l levelLayer) queryPoint(x, y int) tileProps {
 	tx, ty := x/tileTemplate.frameWidth, y/tileTemplate.frameHeight
 	if ty < 0 || ty >= len(l) || tx < 0 || tx >= len(l[ty]) {
 		return outOfBounds
@@ -154,9 +154,9 @@ func (l LevelLayer) QueryPoint(x, y int) TileProps {
 	return l[ty][tx]
 }
 
-func (l *Level) IsPointSolid(x, y int) bool {
-	for _, m := range l.Map {
-		if m.QueryPoint(x, y).solid {
+func (l *level) isPointSolid(x, y int) bool {
+	for _, m := range l.levelMap {
+		if m.queryPoint(x, y).solid {
 			return true
 		}
 	}

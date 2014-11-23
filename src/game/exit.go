@@ -15,28 +15,28 @@ var exitTemplate = &spriteTemplate{
 	frameHeight: 64,
 }
 
-type DoorState int
+type exitState int
 
 const (
-	DoorStateClosed DoorState = iota
-	DoorStateOpen
-	DoorStateQuit
+	exitStateClosed exitState = iota
+	exitStateOpen
+	exitStateQuit
 )
 
-type Exit struct {
+type exit struct {
 	*sprite
-	DoorState
+	exitState
 
 	inbox   chan message
 	updater *time.Ticker
 }
 
-func NewExit(ctx *sdl.Context) (*Exit, error) {
+func newExit(ctx *sdl.Context) (*exit, error) {
 	s, err := exitTemplate.new(ctx)
 	if err != nil {
 		return nil, err
 	}
-	e := &Exit{
+	e := &exit{
 		sprite:  s,
 		inbox:   make(chan message, 10),
 		updater: time.NewTicker(100 * time.Millisecond),
@@ -47,11 +47,11 @@ func NewExit(ctx *sdl.Context) (*Exit, error) {
 	return e, nil
 }
 
-func (e *Exit) Destroy() {
+func (e *exit) Destroy() {
 	e.updater.Stop()
 }
 
-func (e *Exit) life() {
+func (e *exit) life() {
 	for {
 		select {
 		case msg := <-e.inbox:
@@ -64,22 +64,22 @@ func (e *Exit) life() {
 				if msg.k == "player.location" {
 					// If the player is near the door, open it;
 					// If the player is not near the door, close it.
-					if e.DoorState == DoorStateClosed &&
+					if e.exitState == exitStateClosed &&
 						m.x > e.x-200 && m.x < e.x+200 &&
 						m.y > e.y-200 && m.y < e.y+200 {
-						e.DoorState = DoorStateOpen
+						e.exitState = exitStateOpen
 					}
-					if e.DoorState == DoorStateOpen && (m.x <= e.x-200 || m.x >= e.x+200 ||
+					if e.exitState == exitStateOpen && (m.x <= e.x-200 || m.x >= e.x+200 ||
 						m.y <= e.y-200 || m.y >= e.y+200) {
-						e.DoorState = DoorStateClosed
+						e.exitState = exitStateClosed
 					}
 				}
 			}
 		case <-e.updater.C:
 			switch {
-			case e.DoorState == DoorStateClosed && e.frame > 0:
+			case e.exitState == exitStateClosed && e.frame > 0:
 				e.frame--
-			case e.DoorState == DoorStateOpen && e.frame < 3:
+			case e.exitState == exitStateOpen && e.frame < 3:
 				e.frame++
 			}
 		}
