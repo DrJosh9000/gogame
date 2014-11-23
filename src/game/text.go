@@ -18,9 +18,10 @@ type text struct {
 	t          string
 	tex        *sdl.Texture
 	x, y, w, h int
+	invisible  bool
 }
 
-func newText(ctx *sdl.Context, s string, c, fill sdl.Colour) (*text, error) {
+func newText(ctx *sdl.Context, s string, c, fill sdl.Colour, al sdl.Alignment) (*text, error) {
 	if defaultFont == nil {
 		f, err := sdl.LoadFont(defaultFontFile, defaultFontSize)
 		if err != nil {
@@ -40,7 +41,7 @@ func newText(ctx *sdl.Context, s string, c, fill sdl.Colour) (*text, error) {
 	if err := b.Err(); err != nil {
 		return nil, err
 	}
-	surf, err := sdl.JoinVertically(surfs, fill)
+	surf, err := sdl.Stack(surfs, fill, al)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +59,9 @@ func newText(ctx *sdl.Context, s string, c, fill sdl.Colour) (*text, error) {
 }
 
 func (t *text) draw(r renderer) error {
+	if t.invisible {
+		return nil
+	}
 	return r.Copy(t.tex,
 		sdl.Rect{0, 0, t.w, t.h},
 		sdl.Rect{t.x, t.y, t.w, t.h})

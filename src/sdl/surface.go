@@ -48,7 +48,15 @@ func (s *Surface) Size() (w, h int) {
 	return int(s.s().w), int(s.s().h)
 }
 
-func JoinVertically(surfs []*Surface, fill Colour) (*Surface, error) {
+type Alignment int
+
+const (
+	LeftAlign Alignment = iota
+	CentreAlign
+	RightAlign
+)
+
+func Stack(surfs []*Surface, fill Colour, al Alignment) (*Surface, error) {
 	sumH, maxW := 0, 0
 	for _, s := range surfs {
 		w, h := s.Size()
@@ -71,6 +79,12 @@ func JoinVertically(surfs []*Surface, fill Colour) (*Surface, error) {
 	for _, s := range surfs {
 		w, h := s.Size()
 		dstRect.W = w
+		switch al {
+		case CentreAlign:
+			dstRect.X = (maxW - w) / 2
+		case RightAlign:
+			dstRect.X = maxW - w
+		}
 		if errno := C.SDL_BlitSurface(s.s(), nil, surf, dstRect.r()); errno != 0 {
 			return nil, Err()
 		}
