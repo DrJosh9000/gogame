@@ -14,6 +14,7 @@ SDL_Surface* loadbmp(const char *file) {
 import "C"
 import (
 	"fmt"
+	"runtime"
 	"unsafe"
 )
 
@@ -32,12 +33,13 @@ func LoadBMP(path string) (*Surface, error) {
 	if s == nil {
 		return nil, fmt.Errorf("unable to load BMP %q: %s", path, Err())
 	}
-	return &Surface{unsafe.Pointer(s)}, nil
+   	return NewSurface(s), nil
 }
 
-func (s *Surface) Free() {
-	if s.s() != nil {
-		C.SDL_FreeSurface(s.s())
-	}
-	s.surface = nil
+func NewSurface(s *C.SDL_Surface) *Surface {
+	r := &Surface{unsafe.Pointer(s)}
+	runtime.SetFinalizer(r, func(x interface{}) {
+			C.SDL_FreeSurface(x.(*Surface).s())
+	})
+	return r
 }

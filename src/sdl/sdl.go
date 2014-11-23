@@ -27,11 +27,20 @@ func Err() error {
 	return errors.New(C.GoString(C.SDL_GetError()))
 }
 
-type Color struct {
+type Colour struct {
 	red, green, blue, alpha uint8
 }
 
-var BlackColor = Color{0x00, 0x00, 0x00, 0xff}
+func (c *Colour) c() C.SDL_Color {
+	return C.SDL_Color{
+		r: C.Uint8(c.red),
+		g: C.Uint8(c.green),
+		b: C.Uint8(c.blue),
+		a: C.Uint8(c.alpha),
+	}
+}
+
+var BlackColour = Colour{0x00, 0x00, 0x00, 0xff}
 
 type Point struct {
 	X, Y int
@@ -81,7 +90,7 @@ func NewContext(title string, width, height int) (*Context, error) {
 		Renderer:       r,
 		TextureManager: NewTextureManager(r),
 	}
-	ctx.Renderer.SetDrawColor(BlackColor)
+	ctx.Renderer.SetDrawColour(BlackColour)
 	return ctx, nil
 }
 

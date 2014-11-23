@@ -73,7 +73,7 @@ func (r *Renderer) Destroy() {
 	r.renderer = nil
 }
 
-func (r *Renderer) SetDrawColor(c Color) {
+func (r *Renderer) SetDrawColour(c Colour) {
 	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.red), C.Uint8(c.green), C.Uint8(c.blue), C.Uint8(c.alpha))
 }
 
@@ -86,13 +86,12 @@ func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {
 }
 
 // Convenience function that loads a BMP into a surface,
-// adds it to the renderer as a texture, and frees the surface.
+// adds it to the renderer as a texture.
 func (r *Renderer) LoadBMP(path string) (*Texture, error) {
 	s, err := LoadBMP(path)
 	if err != nil {
 		return nil, err
 	}
-	defer s.Free()
 	return r.TextureFromSurface(s)
 }
 
@@ -102,6 +101,5 @@ func (r *Renderer) LoadImage(path string) (*Texture, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer s.Free()
 	return r.TextureFromSurface(s)
 }
