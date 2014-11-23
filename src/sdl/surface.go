@@ -33,13 +33,13 @@ func LoadBMP(path string) (*Surface, error) {
 	if s == nil {
 		return nil, fmt.Errorf("unable to load BMP %q: %s", path, Err())
 	}
-   	return NewSurface(s), nil
+	return NewSurface(s), nil
 }
 
 func NewSurface(s *C.SDL_Surface) *Surface {
 	r := &Surface{unsafe.Pointer(s)}
 	runtime.SetFinalizer(r, func(x interface{}) {
-			C.SDL_FreeSurface(x.(*Surface).s())
+		C.SDL_FreeSurface(x.(*Surface).s())
 	})
 	return r
 }

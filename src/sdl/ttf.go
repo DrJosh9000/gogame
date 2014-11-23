@@ -44,7 +44,7 @@ func LoadFont(path string, size uint) (*Font, error) {
 func (f *Font) RenderSolid(text string, c Colour) (*Surface, error) {
 	cp := C.CString(text)
 	defer C.free(unsafe.Pointer(cp))
-	
+
 	s := C.TTF_RenderUTF8_Solid(f.f(), cp, c.c())
 	if s == nil {
 		return nil, Err()
