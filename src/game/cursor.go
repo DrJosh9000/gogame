@@ -53,6 +53,10 @@ func (c *cursor) life() {
 			if m.ButtonState&sdl.MouseLeftMask != 0 {
 				c.frame = 1
 			}
+			if c.invisible {
+				c.invisible = false
+				sdl.HideCursor()
+			}
 		case sdl.WindowEvent:
 			c.invisible = true
 			switch m.EventID {
