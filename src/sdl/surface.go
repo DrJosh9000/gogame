@@ -47,3 +47,34 @@ func NewSurface(s *C.SDL_Surface) *Surface {
 func (s *Surface) Size() (w, h int) {
 	return int(s.s().w), int(s.s().h)
 }
+
+func JoinVertically(surfs []*Surface, fill Colour) (*Surface, error) {
+	sumH, maxW := 0, 0
+	for _, s := range surfs {
+		w, h := s.Size()
+		if w > maxW {
+			maxW = w
+		}
+		sumH += h
+	}
+
+	surf := C.SDL_CreateRGBSurface(0, C.int(maxW), C.int(sumH), 32, 0, 0, 0, 0)
+	if surf == nil {
+		return nil, Err()
+	}
+
+	if errno := C.SDL_FillRect(surf, nil, fill.MapRGBA(surf)); errno != 0 {
+		return nil, Err()
+	}
+
+	dstRect := Rect{}
+	for _, s := range surfs {
+		w, h := s.Size()
+		dstRect.W = w
+		if errno := C.SDL_BlitSurface(s.s(), nil, surf, dstRect.r()); errno != 0 {
+			return nil, Err()
+		}
+		dstRect.Y += h
+	}
+	return NewSurface(surf), nil
+}

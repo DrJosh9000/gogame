@@ -74,7 +74,7 @@ func (r *Renderer) Destroy() {
 }
 
 func (r *Renderer) SetDrawColour(c Colour) {
-	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.red), C.Uint8(c.green), C.Uint8(c.blue), C.Uint8(c.alpha))
+	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.Red), C.Uint8(c.Green), C.Uint8(c.Blue), C.Uint8(c.Alpha))
 }
 
 func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {

@@ -1,8 +1,10 @@
 package game
 
 import (
+	"bufio"
 	"fmt"
 	"sdl"
+	"strings"
 )
 
 const (
@@ -18,7 +20,7 @@ type text struct {
 	x, y, w, h int
 }
 
-func newText(ctx *sdl.Context, s string, c sdl.Colour) (*text, error) {
+func newText(ctx *sdl.Context, s string, c, fill sdl.Colour) (*text, error) {
 	if defaultFont == nil {
 		f, err := sdl.LoadFont(defaultFontFile, defaultFontSize)
 		if err != nil {
@@ -26,7 +28,19 @@ func newText(ctx *sdl.Context, s string, c sdl.Colour) (*text, error) {
 		}
 		defaultFont = f
 	}
-	surf, err := defaultFont.RenderSolid(s, c)
+	var surfs []*sdl.Surface
+	b := bufio.NewScanner(strings.NewReader(s))
+	for b.Scan() {
+		surf, err := defaultFont.RenderSolid(b.Text(), c)
+		if err != nil {
+			return nil, err
+		}
+		surfs = append(surfs, surf)
+	}
+	if err := b.Err(); err != nil {
+		return nil, err
+	}
+	surf, err := sdl.JoinVertically(surfs, fill)
 	if err != nil {
 		return nil, err
 	}
