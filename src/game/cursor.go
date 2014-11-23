@@ -7,7 +7,7 @@ import (
 var cursorTemplate = &spriteTemplate{
 	name:        "cursor",
 	sheetFile:   "assets/cursor.png",
-	framesX:     1,
+	framesX:     2,
 	framesY:     1,
 	frameWidth:  64,
 	frameHeight: 64,
@@ -15,7 +15,7 @@ var cursorTemplate = &spriteTemplate{
 
 type cursor struct {
 	*sprite
-	controller chan sdl.MouseMotionEvent
+	controller chan interface{}
 }
 
 func newCursor(ctx *sdl.Context) (*cursor, error) {
@@ -25,7 +25,7 @@ func newCursor(ctx *sdl.Context) (*cursor, error) {
 	}
 	c := &cursor{
 		sprite:     s,
-		controller: make(chan sdl.MouseMotionEvent, 3),
+		controller: make(chan interface{}, 3),
 	}
 	go c.life()
 	return c, nil
@@ -37,7 +37,23 @@ func (c *cursor) Destroy() {
 
 func (c *cursor) life() {
 	for ev := range c.controller {
-		c.x = ev.X - cursorTemplate.frameWidth/2
-		c.y = ev.Y - cursorTemplate.frameHeight/2
+		switch m := ev.(type) {
+		case sdl.MouseButtonDownEvent:
+			c.x = m.X - cursorTemplate.frameWidth/2
+			c.y = m.Y - cursorTemplate.frameHeight/2
+			c.frame = 1
+		case sdl.MouseButtonUpEvent:
+			c.x = m.X - cursorTemplate.frameWidth/2
+			c.y = m.Y - cursorTemplate.frameHeight/2
+			c.frame = 0
+		case sdl.MouseMotionEvent:
+			c.x = m.X - cursorTemplate.frameWidth/2
+			c.y = m.Y - cursorTemplate.frameHeight/2
+			c.frame = 0
+			if m.ButtonState&sdl.MouseLeftMask != 0 {
+				c.frame = 1
+			}
+		}
+
 	}
 }

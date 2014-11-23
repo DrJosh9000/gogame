@@ -13,6 +13,12 @@ const int kMouseDown 	= SDL_MOUSEBUTTONDOWN;
 const int kMouseUp 		= SDL_MOUSEBUTTONUP;
 const int kMouseWheel 	= SDL_MOUSEWHEEL;
 
+const unsigned int kMouseLeftMask   = SDL_BUTTON_LMASK;
+const unsigned int kMouseMiddleMask = SDL_BUTTON_MMASK;
+const unsigned int kMouseRightMask  = SDL_BUTTON_RMASK;
+const unsigned int kMouseX1Mask     = SDL_BUTTON_X1MASK;
+const unsigned int kMouseX2Mask     = SDL_BUTTON_X2MASK;
+
 Uint32 getType(SDL_Event *ev) {
 	return ev->type;
 }
@@ -54,6 +60,14 @@ type MouseWheelEvent struct {
 	Timestamp, WindowID, MouseID uint32
 	X, Y                         int
 }
+
+const (
+	MouseLeftMask   = uint32(C.kMouseLeftMask)
+	MouseMiddleMask = uint32(C.kMouseMiddleMask)
+	MouseRightMask  = uint32(C.kMouseRightMask)
+	MouseX1Mask     = uint32(C.kMouseX1Mask)
+	MouseX2Mask     = uint32(C.kMouseX2Mask)
+)
 
 func HandleEvents(handler func(e interface{}) error) error {
 	var ev C.SDL_Event
