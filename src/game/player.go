@@ -92,7 +92,7 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 	return p, nil
 }
 
-func (p *player) Destroy() {
+func (p *player) destroy() {
 	close(p.controller)
 	p.updater.Stop()
 }

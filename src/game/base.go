@@ -6,39 +6,39 @@ import (
 	"sdl"
 )
 
-type Renderer interface {
+type renderer interface {
 	Copy(t *sdl.Texture, src, dst sdl.Rect) error
 	CopyEx(t *sdl.Texture, src, dst sdl.Rect, angle float64, center sdl.Point, flip sdl.RendererFlip) error
 }
 
-type Object interface {
-	Destroy()
-	Draw(Renderer) error
+type object interface {
+	destroy()
+	draw(renderer) error
 	String() string
 }
 
-type ComplexObject interface {
-	Object
-	AddChild(Object)
-	Children() []Object
+type complexObject interface {
+	object
+	addChild(object)
+	children() []object
 }
 
-type ComplexBase struct {
-	children []Object
+type complexBase struct {
+	kids []object
 }
 
-func (b *ComplexBase) AddChild(c Object) {
-	b.children = append(b.children, c)
+func (b *complexBase) addChild(c object) {
+	b.kids = append(b.kids, c)
 }
 
-func (b *ComplexBase) Children() []Object {
-	return b.children
+func (b *complexBase) children() []object {
+	return b.kids
 }
 
-func (b *ComplexBase) Draw(r Renderer) error {
-	for _, c := range b.children {
+func (b *complexBase) draw(r renderer) error {
+	for _, c := range b.kids {
 		if c != nil {
-			if err := c.Draw(r); err != nil {
+			if err := c.draw(r); err != nil {
 				return err
 			}
 		}
@@ -46,14 +46,14 @@ func (b *ComplexBase) Draw(r Renderer) error {
 	return nil
 }
 
-func (b *ComplexBase) Destroy() {
-	for _, c := range b.children {
+func (b *complexBase) destroy() {
+	for _, c := range b.kids {
 		if c != nil {
-			c.Destroy()
+			c.destroy()
 		}
 	}
 }
 
-func (b *ComplexBase) String() string {
+func (b *complexBase) String() string {
 	return fmt.Sprintf("%T", b)
 }

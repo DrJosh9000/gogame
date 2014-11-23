@@ -18,7 +18,7 @@ type tile struct {
 }
 
 type layer struct {
-	ComplexBase
+	complexBase
 }
 
 func newLayer(ctx *sdl.Context, m levelLayer) (*layer, error) {
@@ -33,7 +33,7 @@ func newLayer(ctx *sdl.Context, m levelLayer) (*layer, error) {
 				s.x = j * tileTemplate.frameWidth
 				s.y = i * tileTemplate.frameHeight
 				s.frame = m[i][j].index
-				l.AddChild(tile{sprite: s})
+				l.addChild(tile{sprite: s})
 			}
 		}
 	}
@@ -41,7 +41,7 @@ func newLayer(ctx *sdl.Context, m levelLayer) (*layer, error) {
 }
 
 type terrain struct {
-	ComplexBase
+	complexBase
 	exit *exit
 }
 
@@ -52,7 +52,7 @@ func newTerrain(ctx *sdl.Context, lev *level) (*terrain, error) {
 		if err != nil {
 			return nil, err
 		}
-		t.AddChild(l)
+		t.addChild(l)
 	}
 
 	if lev.hasExit {
@@ -62,7 +62,7 @@ func newTerrain(ctx *sdl.Context, lev *level) (*terrain, error) {
 		}
 		e.x, e.y = tileTemplate.frameWidth*lev.exitX, tileTemplate.frameHeight*lev.exitY-16 // hax
 		t.exit = e
-		t.AddChild(e)
+		t.addChild(e)
 	}
 	return t, nil
 }

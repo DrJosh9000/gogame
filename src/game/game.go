@@ -26,8 +26,8 @@ type Game struct {
 
 	sr    *sdl.Renderer
 	wr    *worldRenderer
-	world ComplexBase
-	hud   ComplexBase
+	world complexBase
+	hud   complexBase
 
 	// Special game objects.
 	// TODO: OHDOG
@@ -94,8 +94,8 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
 	g.wr.focus(p.x, p.y)
 
-	g.world.AddChild(p)
-	g.hud.AddChild(c)
+	g.world.addChild(p)
+	g.hud.addChild(c)
 
 	kmp("player.location", g.inbox)
 	go g.messageLoop()
@@ -116,25 +116,25 @@ func (g *Game) messageLoop() {
 
 func (g *Game) Draw() error {
 	// Draw current terrain in world coordinates.
-	if err := g.terrains[g.currentLevel].Draw(g.wr); err != nil {
+	if err := g.terrains[g.currentLevel].draw(g.wr); err != nil {
 		return err
 	}
 
 	// Draw everything in the world in world coordinates.
-	if err := g.world.Draw(g.wr); err != nil {
+	if err := g.world.draw(g.wr); err != nil {
 		return err
 	}
 
 	// Draw the HUD in screen coordinates.
-	return g.hud.Draw(g.sr)
+	return g.hud.draw(g.sr)
 }
 
 func (g *Game) Destroy() {
 	notify("game", quitMsg)
 	g.player.controller <- Quit
 	//	g.ticker.Stop()
-	g.world.Destroy()
-	g.hud.Destroy()
+	g.world.destroy()
+	g.hud.destroy()
 }
 
 func (g *Game) level() *level {
@@ -179,7 +179,7 @@ func (g *Game) HandleEvent(ev interface{}) error {
 }
 
 type worldRenderer struct {
-	r           Renderer
+	r           renderer
 	view, world sdl.Rect
 }
 

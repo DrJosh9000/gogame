@@ -31,9 +31,9 @@ type sprite struct {
 	tex         *sdl.Texture
 }
 
-func (s *sprite) Destroy() {}
+func (s *sprite) destroy() {}
 
-func (s *sprite) Draw(r Renderer) error {
+func (s *sprite) draw(r renderer) error {
 	srcX := (s.frame % s.template.framesX) * s.template.frameWidth
 	srcY := ((s.frame / s.template.framesX) % s.template.framesY) * s.template.frameHeight
 	return r.Copy(s.tex,
