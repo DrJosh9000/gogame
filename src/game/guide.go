@@ -1,5 +1,6 @@
 package game
 
+/*
 import (
 	"time"
 
@@ -43,8 +44,10 @@ func NewGuide(ctx *sdl.Context, k KeyGuide) (*Guide, error) {
 	return g, nil
 }
 
-func (g *Guide) Draw(r *sdl.Renderer) error {
-	return r.Copy(g.tex, sdl.Rect(g.frame*keyGuideFrameWidth, int(g.KeyGuide)*keyGuideFrameHeight, keyGuideFrameWidth, keyGuideFrameHeight), sdl.Rect(g.x, g.y, keyGuideFrameWidth, keyGuideFrameHeight))
+func (g *Guide) Draw(r Renderer) error {
+	return r.Copy(g.tex,
+		sdl.Rect(g.frame*keyGuideFrameWidth, int(g.KeyGuide)*keyGuideFrameHeight, keyGuideFrameWidth, keyGuideFrameHeight),
+		sdl.Rect(g.x, g.y, keyGuideFrameWidth, keyGuideFrameHeight))
 }
 
 func (g *Guide) Destroy() {
@@ -56,3 +59,4 @@ func (g *Guide) life() {
 		g.frame = (g.frame + 1) % 2
 	}
 }
+*/

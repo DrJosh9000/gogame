@@ -19,13 +19,19 @@ const (
 var gameInstance *Game
 
 type Game struct {
-	ComplexBase
 	ctx              *sdl.Context
 	t0               time.Time
 	ticker           *time.Ticker
 	inbox            chan message
-	offsetX, offsetY int
-
+	
+	sr 			 *sdl.Renderer
+	wr			 *worldRenderer
+	world		 ComplexBase
+	hud		     ComplexBase
+	
+	// Special game objects.
+	// TODO: OHDOG
+	cursor 		 *cursor
 	player       *Player
 	exit         *Exit
 	levels       [2]*Level
@@ -36,6 +42,11 @@ type Game struct {
 func NewGame(ctx *sdl.Context) (*Game, error) {
 	if gameInstance != nil {
 		return gameInstance, nil
+	}
+	
+	c, err := newCursor(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	p, err := NewPlayer(ctx)
@@ -65,7 +76,14 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		ctx: ctx,
 		t0:  time.Now(),
 		//ticker: time.NewTicker(gameTickerDuration),
+		sr: ctx.Renderer,
+		wr: &worldRenderer{
+			r: ctx.Renderer,
+			view: sdl.Rect{ 0, 0, 1024, 768 },
+			world: sdl.Rect{ 0, 0, 3072, 768 }, // TODO: derive from terrain
+		},
 		inbox:        make(chan message, 10),
+		cursor:		  c,
 		player:       p,
 		levels:       [2]*Level{m0, m1},
 		terrains:     [2]*Terrain{t0, t1},
@@ -73,7 +91,9 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 	gameInstance = g
 	p.x, p.y = tileTemplate.frameWidth*m0.StartX, tileTemplate.frameHeight*m0.StartY
-	g.AddChild(p)
+	
+	g.world.AddChild(p)
+	g.hud.AddChild(c)
 
 	kmp("player.location", g.inbox)
 	go g.messageLoop()
@@ -86,59 +106,33 @@ func (g *Game) messageLoop() {
 		switch m := msg.v.(type) {
 		case locationMsg:
 			if msg.k == "player.location" {
-				// Keep the player in view.
-				if m.x+g.offsetX > 768 {
-					g.offsetX = 768 - m.x
-				}
-				if m.x+g.offsetX < 256 {
-					g.offsetX = 256 - m.x
-				}
-				if g.offsetX > 0 {
-					g.offsetX = 0
-				}
-				// TODO: base on level size, pls
-				if g.offsetX < -96*tileTemplate.frameWidth {
-					g.offsetX = -96 * tileTemplate.frameWidth
-				}
-
-				if m.y+g.offsetY > 576 {
-					g.offsetY = 576 - m.y
-				}
-				if m.y+g.offsetY < 192 {
-					g.offsetY = 192 - m.y
-				}
-				// TODO: when levels have height, adapt here:
-				g.offsetY = 0
-				/*
-					if g.offsetY < 0 {
-						g.offsetY = 0
-					}
-					if g.offsetY > 0 {
-						g.offsetY = 0
-					}
-				*/
+				g.wr.focus(m.x, m.y)
 			}
 		} // switch msg.(type)
 	} // for range g.inbox
 }
 
-func (g *Game) Draw(r *sdl.Renderer) error {
-	r.OffsetX, r.OffsetY = g.offsetX, g.offsetY
-
-	// Draw current terrain
-	if err := g.terrains[g.currentLevel].Draw(r); err != nil {
+func (g *Game) Draw() error {
+	// Draw current terrain in world coordinates.
+	if err := g.terrains[g.currentLevel].Draw(g.wr); err != nil {
 		return err
 	}
 
-	// Draw everything else
-	return g.ComplexBase.Draw(r)
+	// Draw everything in the world in world coordinates.
+	if err := g.world.Draw(g.wr); err != nil {
+		return err
+	}
+	
+	// Draw the HUD in screen coordinates.
+	return g.hud.Draw(g.sr)
 }
 
 func (g *Game) Destroy() {
 	notify("game", quitMsg)
 	g.player.Controller <- Quit
 	//	g.ticker.Stop()
-	g.ComplexBase.Destroy()
+	g.world.Destroy()
+	g.hud.Destroy()
 }
 
 func (g *Game) Level() *Level {
@@ -175,8 +169,61 @@ func (g *Game) HandleEvent(ev interface{}) error {
 		case 'e':
 			g.currentLevel = (g.currentLevel + 1) % 2
 			g.player.Controller <- Teleport
-
 		}
+	case sdl.MouseMotionEvent:
+		g.cursor.controller <- v
 	}
 	return nil
 }
+
+type worldRenderer struct {
+	r Renderer
+	view, world sdl.Rect
+}
+
+func (r *worldRenderer) focus(x, y int) {
+	// Keep the point in view.
+	left, right := r.view.W/4, 3*r.view.W/4
+	if x-r.view.X > right {
+		r.view.X = x - right
+	}
+	if x-r.view.X < left {
+		r.view.X = x - left
+	}
+	// Clamp to world bounds.
+	if r.view.X < r.world.X {
+		r.view.X = r.world.X
+	}
+	if r.view.X + r.view.W > r.world.X + r.world.W {
+		r.view.X = r.world.X + r.world.W - r.view.W
+	}
+	
+	top, bottom := r.view.H/4, 3*r.view.H/4
+	if y-r.view.Y < top {
+		r.view.Y = y - top
+	}
+	if y-r.view.Y > bottom {
+		r.view.Y = y - bottom
+	}
+	if r.view.Y < r.world.Y {
+		r.view.Y = r.world.Y
+	}
+	if r.view.Y + r.view.H > r.world.Y + r.world.H {
+		r.view.Y = r.world.Y + r.world.H - r.view.H
+	}
+}
+
+func (r *worldRenderer) Copy(t *sdl.Texture, src, dst sdl.Rect) error {
+	dst.X -= r.view.X
+	dst.Y -= r.view.Y
+	return r.r.Copy(t, src, dst)
+}
+
+func (r *worldRenderer) CopyEx(t *sdl.Texture, src, dst sdl.Rect, angle float64, center sdl.Point, flip sdl.RendererFlip) error {
+	dst.X -= r.view.X
+	dst.Y -= r.view.Y
+	center.X -= r.view.X
+	center.Y -= r.view.Y
+	return r.r.CopyEx(t, src, dst, angle, center, flip)
+}
+

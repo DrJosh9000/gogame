@@ -38,13 +38,13 @@ type KeyUpEvent KeyEvent
 
 type MouseMotionEvent struct {
 	Timestamp, WindowID, MouseID, ButtonState uint32
-	X, Y, XRel, YRel                          int32
+	X, Y, XRel, YRel                          int
 }
 
 type MouseButtonEvent struct {
 	Timestamp, WindowID, MouseID uint32
 	Button, State, Clicks        uint8
-	X, Y                         int32
+	X, Y                         int
 }
 
 type MouseButtonDownEvent MouseButtonEvent
@@ -52,7 +52,7 @@ type MouseButtonUpEvent MouseButtonEvent
 
 type MouseWheelEvent struct {
 	Timestamp, WindowID, MouseID uint32
-	X, Y                         int32
+	X, Y                         int
 }
 
 func HandleEvents(handler func(e interface{}) error) error {
@@ -87,10 +87,10 @@ func HandleEvents(handler func(e interface{}) error) error {
 				WindowID:    uint32(mmev.windowID),
 				MouseID:     uint32(mmev.which),
 				ButtonState: uint32(mmev.state),
-				X:           int32(mmev.x),
-				Y:           int32(mmev.y),
-				XRel:        int32(mmev.xrel),
-				YRel:        int32(mmev.yrel),
+				X:           int(mmev.x),
+				Y:           int(mmev.y),
+				XRel:        int(mmev.xrel),
+				YRel:        int(mmev.yrel),
 			}
 		case C.kMouseDown:
 			mbev := (*C.SDL_MouseButtonEvent)(unsafe.Pointer(&ev))
@@ -101,8 +101,8 @@ func HandleEvents(handler func(e interface{}) error) error {
 				Button:    uint8(mbev.button),
 				State:     uint8(mbev.state),
 				Clicks:    uint8(mbev.clicks),
-				X:         int32(mbev.x),
-				Y:         int32(mbev.y),
+				X:         int(mbev.x),
+				Y:         int(mbev.y),
 			}
 		case C.kMouseUp:
 			mbev := (*C.SDL_MouseButtonEvent)(unsafe.Pointer(&ev))
@@ -113,8 +113,8 @@ func HandleEvents(handler func(e interface{}) error) error {
 				Button:    uint8(mbev.button),
 				State:     uint8(mbev.state),
 				Clicks:    uint8(mbev.clicks),
-				X:         int32(mbev.x),
-				Y:         int32(mbev.y),
+				X:         int(mbev.x),
+				Y:         int(mbev.y),
 			}
 		case C.kMouseWheel:
 			mwev := (*C.SDL_MouseWheelEvent)(unsafe.Pointer(&ev))
@@ -122,8 +122,8 @@ func HandleEvents(handler func(e interface{}) error) error {
 				Timestamp: uint32(mwev.timestamp),
 				WindowID:  uint32(mwev.windowID),
 				MouseID:   uint32(mwev.which),
-				X:         int32(mwev.x),
-				Y:         int32(mwev.y),
+				X:         int(mwev.x),
+				Y:         int(mwev.y),
 			}
 		}
 		if err := handler(gev); err != nil {

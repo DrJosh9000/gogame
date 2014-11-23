@@ -6,9 +6,14 @@ import (
 	"sdl"
 )
 
+type Renderer interface {
+	Copy(t *sdl.Texture, src, dst sdl.Rect) error
+	CopyEx(t *sdl.Texture, src, dst sdl.Rect, angle float64, center sdl.Point, flip sdl.RendererFlip) error
+}
+
 type Object interface {
 	Destroy()
-	Draw(*sdl.Renderer) error
+	Draw(Renderer) error
 	String() string
 }
 
@@ -30,7 +35,7 @@ func (b *ComplexBase) Children() []Object {
 	return b.children
 }
 
-func (b *ComplexBase) Draw(r *sdl.Renderer) error {
+func (b *ComplexBase) Draw(r Renderer) error {
 	for _, c := range b.children {
 		if c != nil {
 			if err := c.Draw(r); err != nil {

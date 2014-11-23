@@ -33,12 +33,12 @@ type sprite struct {
 
 func (s *sprite) Destroy() {}
 
-func (s *sprite) Draw(r *sdl.Renderer) error {
+func (s *sprite) Draw(r Renderer) error {
 	srcX := (s.frame % s.template.framesX) * s.template.frameWidth
 	srcY := ((s.frame / s.template.framesX) % s.template.framesY) * s.template.frameHeight
 	return r.Copy(s.tex,
-		sdl.Rect(srcX, srcY, s.template.frameWidth, s.template.frameHeight),
-		sdl.Rect(s.x, s.y, s.template.frameWidth, s.template.frameHeight))
+		sdl.Rect{srcX, srcY, s.template.frameWidth, s.template.frameHeight},
+		sdl.Rect{s.x, s.y, s.template.frameWidth, s.template.frameHeight})
 }
 
 func (s *sprite) String() string {

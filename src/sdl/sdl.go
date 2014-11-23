@@ -31,8 +31,20 @@ type Color struct {
 
 var BlackColor = Color{0x00, 0x00, 0x00, 0xff}
 
-func Rect(x, y, w, h int) C.SDL_Rect {
-	return C.SDL_Rect{x: C.int(x), y: C.int(y), w: C.int(w), h: C.int(h)}
+type Point struct {
+	X, Y int
+}
+
+func (p *Point) p() *C.SDL_Point {
+	return &C.SDL_Point{x: C.int(p.X), y: C.int(p.Y)}
+}
+
+type Rect struct {
+	X, Y, W, H int
+}
+
+func (r *Rect) r() *C.SDL_Rect {
+	return &C.SDL_Rect{x: C.int(r.X), y: C.int(r.Y), w: C.int(r.W), h: C.int(r.H)}
 }
 
 type Context struct {

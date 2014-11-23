@@ -57,7 +57,7 @@ func main() {
 		if err := r.Clear(); err != nil {
 			panic(err)
 		}
-		if err := g.Draw(r); err != nil {
+		if err := g.Draw(); err != nil {
 			panic(err)
 		}
 		r.Present()
