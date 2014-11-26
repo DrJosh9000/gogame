@@ -44,7 +44,7 @@ func newLayer(ctx *sdl.Context, m levelLayer) (*layer, error) {
 
 type terrain struct {
 	complexBase
-	exit *exit
+	exits []*exit
 }
 
 func newTerrain(ctx *sdl.Context, lev *level) (*terrain, error) {
@@ -63,7 +63,7 @@ func newTerrain(ctx *sdl.Context, lev *level) (*terrain, error) {
 			return nil, err
 		}
 		e.x, e.y = tileTemplate.frameWidth*lev.exitX, tileTemplate.frameHeight*lev.exitY-16 // hax
-		t.exit = e
+		t.exits = append(t.exits, e)
 		t.addChild(e)
 	}
 	return t, nil

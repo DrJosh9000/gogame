@@ -21,6 +21,7 @@ type complexObject interface {
 	children() []object
 }
 
+// complexBase is a starting point for implementing complexObject.
 type complexBase struct {
 	kids []object
 }
@@ -54,4 +55,15 @@ func (b *complexBase) destroy() {
 
 func (b *complexBase) String() string {
 	return "complexBase"
+}
+
+// unionObject is like a complex object, but only one subobject is ever drawn
+// (kind of like a C union - only one element is useful at a time).
+type unionObject struct {
+	complexBase
+	active int
+}
+
+func (u *unionObject) draw(r renderer) error {
+	return u.kids[u.active].draw(r)
 }

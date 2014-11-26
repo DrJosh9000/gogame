@@ -28,8 +28,7 @@ type exit struct {
 	*sprite
 	exitState
 
-	inbox   chan message
-	updater *time.Ticker
+	inbox chan message
 }
 
 func newExit(ctx *sdl.Context) (*exit, error) {
@@ -38,9 +37,8 @@ func newExit(ctx *sdl.Context) (*exit, error) {
 		return nil, err
 	}
 	e := &exit{
-		sprite:  s,
-		inbox:   make(chan message, 10),
-		updater: time.NewTicker(100 * time.Millisecond),
+		sprite: s,
+		inbox:  make(chan message, 10),
 	}
 	kmp("global", e.inbox)
 	kmp("player.location", e.inbox)
@@ -50,10 +48,11 @@ func newExit(ctx *sdl.Context) (*exit, error) {
 
 func (e *exit) destroy() {
 	fmt.Println("exit.destroy")
-	e.updater.Stop()
 }
 
 func (e *exit) life() {
+	updater := time.NewTicker(100 * time.Millisecond)
+	defer updater.Stop()
 	for {
 		select {
 		case msg := <-e.inbox:
@@ -78,7 +77,7 @@ func (e *exit) life() {
 					}
 				}
 			}
-		case <-e.updater.C:
+		case <-updater.C:
 			switch {
 			case e.exitState == exitStateClosed && e.frame > 0:
 				e.frame--

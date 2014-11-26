@@ -31,12 +31,11 @@ type Game struct {
 
 	// Special game objects.
 	// TODO: OHDOG
-	cursor       *cursor
-	player       *player
-	exit         *exit
-	levels       [2]*level
-	terrains     [2]*terrain
-	currentLevel int
+	cursor *cursor
+	player *player
+	exit   *exit
+	lev    unionObject
+	levels [2]*level
 }
 
 func NewGame(ctx *sdl.Context) (*Game, error) {
@@ -82,17 +81,18 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 			view:  sdl.Rect{0, 0, 1024, 768},
 			world: sdl.Rect{0, 0, 4096, 768}, // TODO: derive from terrain
 		},
-		inbox:        make(chan message, 10),
-		cursor:       c,
-		player:       p,
-		levels:       [2]*level{m0, m1},
-		terrains:     [2]*terrain{t0, t1},
-		currentLevel: 0,
+		inbox:  make(chan message, 10),
+		cursor: c,
+		player: p,
+		levels: [2]*level{m0, m1},
 	}
 	gameInstance = g
 	p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
 	g.wr.focus(p.x, p.y)
 
+	g.lev.addChild(t0)
+	g.lev.addChild(t1)
+	g.world.addChild(&g.lev)
 	g.world.addChild(p)
 	g.hud.addChild(c)
 
@@ -127,18 +127,13 @@ func (g *Game) messageLoop() {
 			switch m.KeyCode {
 			case 'e':
 				// Do teleport
-				g.currentLevel = (g.currentLevel + 1) % 2
+				g.lev.active = (g.lev.active + 1) % 2
 			}
 		}
 	}
 }
 
 func (g *Game) Draw() error {
-	// Draw current terrain in world coordinates.
-	if err := g.terrains[g.currentLevel].draw(g.wr); err != nil {
-		return err
-	}
-
 	// Draw everything in the world in world coordinates.
 	if err := g.world.draw(g.wr); err != nil {
 		return err
@@ -156,7 +151,7 @@ func (g *Game) Destroy() {
 }
 
 func (g *Game) level() *level {
-	return g.levels[g.currentLevel]
+	return g.levels[g.lev.active]
 }
 
 func (g *Game) HandleEvent(ev sdl.Event) error {
