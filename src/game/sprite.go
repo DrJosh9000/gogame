@@ -32,8 +32,6 @@ type sprite struct {
 	invisible   bool
 }
 
-func (s *sprite) destroy() {}
-
 func (s *sprite) draw(r renderer) error {
 	if s.invisible {
 		return nil

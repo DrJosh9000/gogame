@@ -8,15 +8,11 @@ import (
 // incorporating the message value and the key it was sent under.
 type message struct {
 	k string
-	v messageValue
-}
-
-type messageValue interface {
-	String() string
+	v fmt.Stringer
 }
 
 func (m *message) String() string {
-	return fmt.Sprintf("message{k:%s, v:%v}", m.k, m.v)
+	return fmt.Sprintf("message{k:%s, v:%+v}", m.k, m.v)
 }
 
 // notes keeps track of all registered channels.
@@ -29,9 +25,11 @@ func kmp(key string, ch chan message) {
 }
 
 // notify sends a message to every channel registered for a key.
-func notify(key string, value messageValue) {
+func notify(key string, value fmt.Stringer) {
+	m := message{k: key, v: value}
+	//fmt.Printf("sending msg %+v\n", m)
 	for _, n := range notes[key] {
-		n <- message{k: key, v: value}
+		n <- m
 	}
 }
 

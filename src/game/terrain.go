@@ -17,6 +17,8 @@ type tile struct {
 	*sprite
 }
 
+func (t tile) destroy() {}
+
 type layer struct {
 	complexBase
 }

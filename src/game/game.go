@@ -31,7 +31,6 @@ type Game struct {
 
 	// Special game objects.
 	// TODO: OHDOG
-	// cursor: keep this around to send mouse events to directly.
 	cursor       *cursor
 	player       *player
 	exit         *exit
@@ -81,7 +80,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		wr: &worldRenderer{
 			r:     ctx.Renderer,
 			view:  sdl.Rect{0, 0, 1024, 768},
-			world: sdl.Rect{0, 0, 3072, 768}, // TODO: derive from terrain
+			world: sdl.Rect{0, 0, 4096, 768}, // TODO: derive from terrain
 		},
 		inbox:        make(chan message, 10),
 		cursor:       c,
@@ -103,7 +102,9 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 	g.hud.addChild(testText)
 
+	kmp("global", g.inbox)
 	kmp("player.location", g.inbox)
+	kmp("input.event", g.inbox)
 	go g.messageLoop()
 
 	return g, nil
@@ -111,13 +112,25 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 
 func (g *Game) messageLoop() {
 	for msg := range g.inbox {
+		//fmt.Printf("game.inbox got %+v\n", msg)
 		switch m := msg.v.(type) {
+		case basicMsg:
+			switch m {
+			case quitMsg:
+				return
+			}
 		case locationMsg:
 			if msg.k == "player.location" {
 				g.wr.focus(m.x, m.y)
 			}
-		} // switch msg.(type)
-	} // for range g.inbox
+		case *sdl.KeyUpEvent:
+			switch m.KeyCode {
+			case 'e':
+				// Do teleport
+				g.currentLevel = (g.currentLevel + 1) % 2
+			}
+		}
+	}
 }
 
 func (g *Game) Draw() error {
@@ -136,9 +149,8 @@ func (g *Game) Draw() error {
 }
 
 func (g *Game) Destroy() {
-	notify("game", quitMsg)
-	g.player.controller <- Quit
-	//	g.ticker.Stop()
+	fmt.Println("game.destroy")
+	notify("global", quitMsg)
 	g.world.destroy()
 	g.hud.destroy()
 }
@@ -147,40 +159,8 @@ func (g *Game) level() *level {
 	return g.levels[g.currentLevel]
 }
 
-func (g *Game) HandleEvent(ev interface{}) error {
-	switch v := ev.(type) {
-	case sdl.KeyDownEvent:
-		switch v.KeyCode {
-		case ' ':
-			g.player.controller <- StartJump
-		case 'w':
-			fmt.Println("w down")
-		case 'a':
-			g.player.controller <- StartWalkLeft
-		case 's':
-			fmt.Println("s down")
-		case 'd':
-			g.player.controller <- StartWalkRight
-		}
-	case sdl.KeyUpEvent:
-		switch v.KeyCode {
-		case ' ':
-			g.player.controller <- StopJump
-		case 'w':
-			fmt.Println("w up")
-		case 'a':
-			g.player.controller <- StopWalkLeft
-		case 's':
-			fmt.Println("s up")
-		case 'd':
-			g.player.controller <- StopWalkRight
-		case 'e':
-			g.currentLevel = (g.currentLevel + 1) % 2
-			g.player.controller <- Teleport
-		}
-	case sdl.MouseButtonDownEvent, sdl.MouseButtonUpEvent, sdl.MouseMotionEvent, sdl.WindowEvent:
-		g.cursor.controller <- v
-	}
+func (g *Game) HandleEvent(ev sdl.Event) error {
+	notify("input.event", ev)
 	return nil
 }
 

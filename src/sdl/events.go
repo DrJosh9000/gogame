@@ -46,27 +46,43 @@ SDL_Keycode getKeyCode(SDL_Event *ev) {
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
 
-type QuitEvent int
+type Event interface {
+	fmt.Stringer
+}
+
+type Timestamp uint32
+
+func (t Timestamp) String() string {
+	return fmt.Sprintf("@%d", uint32(t))
+}
+
+type QuitEvent struct {
+	Timestamp
+}
 type KeyEvent struct {
-	Timestamp, WindowID, KeyCode uint32
-	State, Repeat                uint8
+	Timestamp
+	WindowID, KeyCode uint32
+	State, Repeat     uint8
 }
 
 type KeyDownEvent KeyEvent
 type KeyUpEvent KeyEvent
 
 type MouseMotionEvent struct {
-	Timestamp, WindowID, MouseID, ButtonState uint32
-	X, Y, XRel, YRel                          int
+	Timestamp
+	WindowID, MouseID, ButtonState uint32
+	X, Y, XRel, YRel               int
 }
 
 type MouseButtonEvent struct {
-	Timestamp, WindowID, MouseID uint32
-	Button, State, Clicks        uint8
-	X, Y                         int
+	Timestamp
+	WindowID, MouseID     uint32
+	Button, State, Clicks uint8
+	X, Y                  int
 }
 
 type MouseButtonDownEvent MouseButtonEvent
@@ -81,14 +97,16 @@ const (
 )
 
 type MouseWheelEvent struct {
-	Timestamp, WindowID, MouseID uint32
-	X, Y                         int
+	Timestamp
+	WindowID, MouseID uint32
+	X, Y              int
 }
 
 type WindowEvent struct {
-	Timestamp, WindowID uint32
-	EventID             WindowEventID
-	Data1, Data2        int32
+	Timestamp
+	WindowID     uint32
+	EventID      WindowEventID
+	Data1, Data2 int32
 }
 
 type WindowEventID uint8
@@ -110,35 +128,31 @@ const (
 	WindowClose       = WindowEventID(C.kWindowEventClose)
 )
 
-func HandleEvents(handler func(e interface{}) error) error {
+func HandleEvents(handler func(e Event) error) error {
 	var ev C.SDL_Event
 	for C.SDL_PollEvent(&ev) != 0 {
-		var gev interface{}
+		var gev Event
 		switch C.getType(&ev) {
 		case C.kQuit:
-			gev = QuitEvent(0)
-		case C.kKeyDown:
+			gev = QuitEvent{}
+		case C.kKeyDown, C.kKeyUp:
 			kev := (*C.SDL_KeyboardEvent)(unsafe.Pointer(&ev))
-			gev = KeyDownEvent{
-				Timestamp: uint32(kev.timestamp),
+			e := &KeyEvent{
+				Timestamp: Timestamp(kev.timestamp),
 				WindowID:  uint32(kev.windowID),
 				State:     uint8(kev.state),
 				Repeat:    uint8(kev.repeat),
 				KeyCode:   uint32(C.getKeyCode(&ev)),
 			}
-		case C.kKeyUp:
-			kev := (*C.SDL_KeyboardEvent)(unsafe.Pointer(&ev))
-			gev = KeyUpEvent{
-				Timestamp: uint32(kev.timestamp),
-				WindowID:  uint32(kev.windowID),
-				State:     uint8(kev.state),
-				Repeat:    uint8(kev.repeat),
-				KeyCode:   uint32(C.getKeyCode(&ev)),
+			if C.getType(&ev) == C.kKeyUp {
+				gev = (*KeyUpEvent)(e)
+			} else {
+				gev = (*KeyDownEvent)(e)
 			}
 		case C.kMouseMotion:
 			mmev := (*C.SDL_MouseMotionEvent)(unsafe.Pointer(&ev))
-			gev = MouseMotionEvent{
-				Timestamp:   uint32(mmev.timestamp),
+			gev = &MouseMotionEvent{
+				Timestamp:   Timestamp(mmev.timestamp),
 				WindowID:    uint32(mmev.windowID),
 				MouseID:     uint32(mmev.which),
 				ButtonState: uint32(mmev.state),
@@ -147,10 +161,10 @@ func HandleEvents(handler func(e interface{}) error) error {
 				XRel:        int(mmev.xrel),
 				YRel:        int(mmev.yrel),
 			}
-		case C.kMouseDown:
+		case C.kMouseDown, C.kMouseUp:
 			mbev := (*C.SDL_MouseButtonEvent)(unsafe.Pointer(&ev))
-			gev = MouseButtonDownEvent{
-				Timestamp: uint32(mbev.timestamp),
+			e := &MouseButtonEvent{
+				Timestamp: Timestamp(mbev.timestamp),
 				WindowID:  uint32(mbev.windowID),
 				MouseID:   uint32(mbev.which),
 				Button:    uint8(mbev.button),
@@ -159,22 +173,15 @@ func HandleEvents(handler func(e interface{}) error) error {
 				X:         int(mbev.x),
 				Y:         int(mbev.y),
 			}
-		case C.kMouseUp:
-			mbev := (*C.SDL_MouseButtonEvent)(unsafe.Pointer(&ev))
-			gev = MouseButtonUpEvent{
-				Timestamp: uint32(mbev.timestamp),
-				WindowID:  uint32(mbev.windowID),
-				MouseID:   uint32(mbev.which),
-				Button:    uint8(mbev.button),
-				State:     uint8(mbev.state),
-				Clicks:    uint8(mbev.clicks),
-				X:         int(mbev.x),
-				Y:         int(mbev.y),
+			if C.getType(&ev) == C.kMouseUp {
+				gev = (*MouseButtonUpEvent)(e)
+			} else {
+				gev = (*MouseButtonDownEvent)(e)
 			}
 		case C.kMouseWheel:
 			mwev := (*C.SDL_MouseWheelEvent)(unsafe.Pointer(&ev))
-			gev = MouseWheelEvent{
-				Timestamp: uint32(mwev.timestamp),
+			gev = &MouseWheelEvent{
+				Timestamp: Timestamp(mwev.timestamp),
 				WindowID:  uint32(mwev.windowID),
 				MouseID:   uint32(mwev.which),
 				X:         int(mwev.x),
@@ -182,8 +189,8 @@ func HandleEvents(handler func(e interface{}) error) error {
 			}
 		case C.kWindow:
 			wev := (*C.SDL_WindowEvent)(unsafe.Pointer(&ev))
-			gev = WindowEvent{
-				Timestamp: uint32(wev.timestamp),
+			gev = &WindowEvent{
+				Timestamp: Timestamp(wev.timestamp),
 				WindowID:  uint32(wev.windowID),
 				EventID:   WindowEventID(wev.event),
 				Data1:     int32(wev.data1),

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"sdl"
 )
 
@@ -15,7 +16,7 @@ var cursorTemplate = &spriteTemplate{
 
 type cursor struct {
 	*sprite
-	controller chan interface{}
+	inbox chan message
 }
 
 func newCursor(ctx *sdl.Context) (*cursor, error) {
@@ -24,29 +25,32 @@ func newCursor(ctx *sdl.Context) (*cursor, error) {
 		return nil, err
 	}
 	c := &cursor{
-		sprite:     s,
-		controller: make(chan interface{}, 3),
+		sprite: s,
+		inbox:  make(chan message, 10),
 	}
+	kmp("input.event", c.inbox)
 	go c.life()
 	return c, nil
 }
 
-func (c *cursor) Destroy() {
-	close(c.controller)
+func (c *cursor) destroy() {
+	fmt.Println("cursor.destroy")
+	close(c.inbox)
 }
 
 func (c *cursor) life() {
-	for ev := range c.controller {
-		switch m := ev.(type) {
-		case sdl.MouseButtonDownEvent:
+	for msg := range c.inbox {
+		//fmt.Printf("cursor.inbox got %+v\n", msg)
+		switch m := msg.v.(type) {
+		case *sdl.MouseButtonDownEvent:
 			c.x = m.X - cursorTemplate.frameWidth/2
 			c.y = m.Y - cursorTemplate.frameHeight/2
 			c.frame = 1
-		case sdl.MouseButtonUpEvent:
+		case *sdl.MouseButtonUpEvent:
 			c.x = m.X - cursorTemplate.frameWidth/2
 			c.y = m.Y - cursorTemplate.frameHeight/2
 			c.frame = 0
-		case sdl.MouseMotionEvent:
+		case *sdl.MouseMotionEvent:
 			c.x = m.X - cursorTemplate.frameWidth/2
 			c.y = m.Y - cursorTemplate.frameHeight/2
 			c.frame = 0
@@ -57,7 +61,7 @@ func (c *cursor) life() {
 				c.invisible = false
 				sdl.HideCursor()
 			}
-		case sdl.WindowEvent:
+		case *sdl.WindowEvent:
 			c.invisible = true
 			switch m.EventID {
 			case sdl.WindowEnter:

@@ -1,7 +1,7 @@
 package game
 
 import (
-	//"fmt"
+	"fmt"
 	"math"
 	"time"
 
@@ -47,8 +47,7 @@ const (
 type playerControl int
 
 const (
-	Quit playerControl = iota
-	StartWalkLeft
+	StartWalkLeft playerControl = iota
 	StopWalkLeft
 	StartWalkRight
 	StopWalkRight
@@ -64,8 +63,7 @@ type player struct {
 	*sprite
 	lastUpdate time.Duration
 
-	controller chan playerControl
-	updater    *time.Ticker
+	inbox chan message
 
 	// All struct elements below should be controlled only by the life goroutine.
 	facing                   playerFacing
@@ -80,21 +78,22 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 		return nil, err
 	}
 	p := &player{
-		sprite:     s,
-		fx:         64, // TODO: ohgod fix
-		fy:         768 - 64,
-		facing:     Right,
-		anim:       Standing,
-		controller: make(chan playerControl),
-		updater:    time.NewTicker(playerUpdateInterval),
+		sprite: s,
+		fx:     64, // TODO: ohgod fix
+		fy:     768 - 64,
+		facing: Right,
+		anim:   Standing,
+		inbox:  make(chan message, 10),
 	}
+
+	kmp("global", p.inbox)
+	kmp("input.event", p.inbox)
 	go p.life()
 	return p, nil
 }
 
 func (p *player) destroy() {
-	close(p.controller)
-	p.updater.Stop()
+	fmt.Println("player.destroy")
 }
 
 func (p *player) String() string {
@@ -136,28 +135,20 @@ func (p *player) update(t time.Duration) {
 	nx, ny := int(p.fx), int(p.fy)
 	p.lastUpdate = t
 
-	switch p.anim {
-	case Standing, Walking:
-		if !gameInstance.level().isPointSolid(nx, ny+32) && !gameInstance.level().isPointSolid(nx+31, ny+32) {
-			p.anim = Falling
-			p.ddy = playerGravity
+	if !gameInstance.level().isPointSolid(nx, ny+32) && !gameInstance.level().isPointSolid(nx+31, ny+32) {
+		p.anim = Falling
+		p.ddy = playerGravity
+	} else {
+		p.anim = Standing
+		if math.Abs(p.wx) > 1.0 {
+			p.anim = Walking
 		}
-	case Falling:
-		if gameInstance.level().isPointSolid(nx, ny+32) {
-			p.anim = Standing
-			ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
-			p.fy = float64(ny)
-			p.dy = 0
-			p.ddy = 0
-		}
-		if gameInstance.level().isPointSolid(nx+31, ny+32) {
-			p.anim = Standing
-			ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
-			p.fy = float64(ny)
-			p.dy = 0
-			p.ddy = 0
-		}
+		ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
+		p.fy = float64(ny)
+		p.dy = 0
+		p.ddy = 0
 	}
+
 	if gameInstance.level().isPointSolid(nx, ny+31) {
 		nx = ((nx / tileTemplate.frameWidth) + 1) * tileTemplate.frameWidth
 		p.fx, p.fy = float64(nx), float64(ny)
@@ -174,55 +165,72 @@ func (p *player) update(t time.Duration) {
 	notify("player.location", locationMsg{o: p, x: p.x, y: p.y})
 }
 
-func (p *player) control(ctl playerControl) bool {
+func (p *player) handleMessage(msg message) bool {
+	// TODO: Replace with configurable control map.
+	var ctl playerControl
+	switch v := msg.v.(type) {
+	case *sdl.KeyDownEvent:
+		switch v.KeyCode {
+		case ' ':
+			ctl = StartJump
+		case 'w':
+			fmt.Println("w down")
+			return false
+		case 'a':
+			ctl = StartWalkLeft
+		case 's':
+			fmt.Println("s down")
+			return false
+		case 'd':
+			ctl = StartWalkRight
+		default:
+			return false
+		}
+	case *sdl.KeyUpEvent:
+		switch v.KeyCode {
+		case ' ':
+			ctl = StopJump
+		case 'w':
+			fmt.Println("w up")
+			return false
+		case 'a':
+			ctl = StopWalkLeft
+		case 's':
+			fmt.Println("s up")
+			return false
+		case 'd':
+			ctl = StopWalkRight
+		case 'e':
+			ctl = Teleport
+		default:
+			return false
+		}
+	case basicMsg:
+		if v == quitMsg {
+			return true
+		}
+	default:
+		return false
+	}
+
 	switch ctl {
-	case Quit:
-		return true
 	case StartWalkLeft:
-		switch p.anim {
-		case Standing, Walking:
-			p.anim = Walking
-			p.facing = Left
-			p.wx = -playerWalkSpeed
-		}
+		p.facing = Left
+		p.wx = -playerWalkSpeed
 	case StopWalkLeft:
-		if p.anim == Walking {
-			p.anim = Standing
-		}
 		p.wx = 0
 	case StartWalkRight:
-		switch p.anim {
-		case Standing, Walking:
-			p.anim = Walking
-			p.facing = Right
-			p.wx = playerWalkSpeed
-		}
+		p.facing = Right
+		p.wx = playerWalkSpeed
 	case StopWalkRight:
-		if p.anim == Walking {
-			p.anim = Standing
-		}
 		p.wx = 0
 	case StartJump:
-		switch p.anim {
-		case Standing, Walking:
-			/*
-						p.anim = Jumping
-					}
-				case StopJump:
-					if p.anim == Jumping {
-			*/
-			p.anim = Falling
-			p.dy = playerJumpSpeed
-			p.ddy = playerGravity
-		}
+		p.dy = playerJumpSpeed
+		p.ddy = playerGravity
 	case Land:
-		if p.anim == Falling {
-			p.anim = Standing
-			p.dy = 0
-			p.ddy = 0
-		}
+		p.dy = 0
+		p.ddy = 0
 	case Teleport:
-		p.anim = Falling
 		p.ddy = playerGravity
 	default:
 		// TODO: more actions
@@ -231,14 +239,22 @@ func (p *player) control(ctl playerControl) bool {
 }
 
 func (p *player) life() {
+	updater := time.NewTicker(playerUpdateInterval)
+	defer func() {
+		updater.Stop()
+		close(p.inbox)
+		fmt.Println("player.end of life")
+	}()
 	t0 := time.Now()
 	for {
 		select {
-		case c := <-p.controller:
-			if p.control(c) {
+		case c := <-p.inbox:
+			//fmt.Printf("player.inbox got %+v\n", c)
+			if p.handleMessage(c) {
 				return
 			}
-		case t := <-p.updater.C:
+		case t := <-updater.C:
+			//fmt.Printf("player.updater got %+v\n", t)
 			p.update(t.Sub(t0))
 		}
 	}

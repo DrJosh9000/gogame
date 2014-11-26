@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"sdl"
@@ -47,7 +48,8 @@ func newExit(ctx *sdl.Context) (*exit, error) {
 	return e, nil
 }
 
-func (e *exit) Destroy() {
+func (e *exit) destroy() {
+	fmt.Println("exit.destroy")
 	e.updater.Stop()
 }
 
@@ -55,9 +57,10 @@ func (e *exit) life() {
 	for {
 		select {
 		case msg := <-e.inbox:
+			//fmt.Printf("exit.inbox got %+v\n", msg)
 			switch m := msg.v.(type) {
 			case basicMsg:
-				if msg.k == "game" && m == quitMsg {
+				if m == quitMsg {
 					return
 				}
 			case locationMsg:

@@ -1,8 +1,6 @@
 package game
 
 import (
-	"fmt"
-
 	"sdl"
 )
 
@@ -55,5 +53,5 @@ func (b *complexBase) destroy() {
 }
 
 func (b *complexBase) String() string {
-	return fmt.Sprintf("%T", b)
+	return "complexBase"
 }
