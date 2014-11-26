@@ -5,7 +5,6 @@ import (
 )
 
 var tileTemplate = &spriteTemplate{
-	name:        "tile",
 	sheetFile:   "assets/tiles.png",
 	frameWidth:  32,
 	frameHeight: 32,

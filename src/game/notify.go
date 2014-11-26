@@ -1,18 +1,10 @@
 package game
 
-import (
-	"fmt"
-)
-
 // message is the basic type for notification messages,
 // incorporating the message value and the key it was sent under.
 type message struct {
 	k string
-	v fmt.Stringer
-}
-
-func (m *message) String() string {
-	return fmt.Sprintf("message{k:%s, v:%+v}", m.k, m.v)
+	v interface{}
 }
 
 // notes keeps track of all registered channels.
@@ -25,7 +17,7 @@ func kmp(key string, ch chan message) {
 }
 
 // notify sends a message to every channel registered for a key.
-func notify(key string, value fmt.Stringer) {
+func notify(key string, value interface{}) {
 	m := message{k: key, v: value}
 	//fmt.Printf("sending msg %+v\n", m)
 	for _, n := range notes[key] {
@@ -37,19 +29,11 @@ func notify(key string, value fmt.Stringer) {
 
 type basicMsg string
 
-func (m basicMsg) String() string {
-	return string(m)
-}
-
 var (
 	quitMsg = basicMsg("quit")
 )
 
 type locationMsg struct {
-	o    fmt.Stringer
+	o    interface{}
 	x, y int
-}
-
-func (l locationMsg) String() string {
-	return fmt.Sprintf("locationMsg{o:%v x:%d y:%d}", l.o, l.x, l.y)
 }

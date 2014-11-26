@@ -7,10 +7,6 @@ import (
 
 type testMessage int
 
-func (t testMessage) String() string {
-	return fmt.Sprintf("%d", int(t))
-}
-
 func TestRegister(t *testing.T) {
 	kmp("TestRegister", nil)
 	if got, want := len(notes["TestRegister"]), 1; got != want {

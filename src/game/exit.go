@@ -8,7 +8,6 @@ import (
 )
 
 var exitTemplate = &spriteTemplate{
-	name:        "exit",
 	sheetFile:   "assets/door.png",
 	framesX:     4,
 	framesY:     1,

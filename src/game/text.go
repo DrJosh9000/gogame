@@ -2,7 +2,6 @@ package game
 
 import (
 	"bufio"
-	"fmt"
 	"sdl"
 	"strings"
 )
@@ -71,8 +70,4 @@ func (t *text) destroy() {
 	if t.tex != nil {
 		t.tex.Destroy()
 	}
-}
-
-func (t *text) String() string {
-	return fmt.Sprintf("text: %q", t.t)
 }

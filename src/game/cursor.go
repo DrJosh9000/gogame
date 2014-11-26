@@ -6,7 +6,6 @@ import (
 )
 
 var cursorTemplate = &spriteTemplate{
-	name:        "cursor",
 	sheetFile:   "assets/cursor.png",
 	framesX:     2,
 	framesY:     1,

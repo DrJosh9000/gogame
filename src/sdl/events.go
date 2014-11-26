@@ -46,19 +46,12 @@ SDL_Keycode getKeyCode(SDL_Event *ev) {
 import "C"
 
 import (
-	"fmt"
 	"unsafe"
 )
 
-type Event interface {
-	fmt.Stringer
-}
+type Event interface{}
 
 type Timestamp uint32
-
-func (t Timestamp) String() string {
-	return fmt.Sprintf("@%d", uint32(t))
-}
 
 type QuitEvent struct {
 	Timestamp

@@ -1,12 +1,11 @@
 package game
 
 import (
-	"fmt"
 	"sdl"
 )
 
 type spriteTemplate struct {
-	name, sheetFile                           string
+	sheetFile                                 string
 	framesX, framesY, frameWidth, frameHeight int
 }
 
@@ -19,10 +18,6 @@ func (s *spriteTemplate) new(ctx *sdl.Context) (*sprite, error) {
 		template: s,
 		tex:      tex,
 	}, nil
-}
-
-func (s *spriteTemplate) String() string {
-	return s.name
 }
 
 type sprite struct {
@@ -41,8 +36,4 @@ func (s *sprite) draw(r renderer) error {
 	return r.Copy(s.tex,
 		sdl.Rect{srcX, srcY, s.template.frameWidth, s.template.frameHeight},
 		sdl.Rect{s.x, s.y, s.template.frameWidth, s.template.frameHeight})
-}
-
-func (s *sprite) String() string {
-	return fmt.Sprintf("sprite(%s)", s.template)
 }

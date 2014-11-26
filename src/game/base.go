@@ -12,7 +12,6 @@ type renderer interface {
 type object interface {
 	destroy()
 	draw(renderer) error
-	String() string
 }
 
 type complexObject interface {
@@ -51,10 +50,6 @@ func (b *complexBase) destroy() {
 			c.destroy()
 		}
 	}
-}
-
-func (b *complexBase) String() string {
-	return "complexBase"
 }
 
 // unionObject is like a complex object, but only one subobject is ever drawn

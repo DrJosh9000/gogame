@@ -9,7 +9,6 @@ import (
 )
 
 var playerTemplate = &spriteTemplate{
-	name:        "player",
 	sheetFile:   "assets/spacepsn.png",
 	framesX:     4,
 	framesY:     2,
@@ -94,10 +93,6 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 
 func (p *player) destroy() {
 	fmt.Println("player.destroy")
-}
-
-func (p *player) String() string {
-	return "player"
 }
 
 func (p *player) update(t time.Duration) {
