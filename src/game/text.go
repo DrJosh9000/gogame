@@ -44,9 +44,15 @@ func newText(ctx *sdl.Context, s string, c, fill sdl.Colour, al sdl.Alignment) (
 	if err != nil {
 		return nil, err
 	}
+	if err := surf.SetBlendMode(sdl.BlendModeBlend); err != nil {
+		return nil, err
+	}
 	w, h := surf.Size()
 	tex, err := ctx.Renderer.TextureFromSurface(surf)
 	if err != nil {
+		return nil, err
+	}
+	if err := tex.SetBlendMode(sdl.BlendModeBlend); err != nil {
 		return nil, err
 	}
 	return &text{

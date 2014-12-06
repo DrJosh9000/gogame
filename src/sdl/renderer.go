@@ -73,6 +73,13 @@ func (r *Renderer) Destroy() {
 	r.renderer = nil
 }
 
+func (r *Renderer) SetDrawBlendMode(b BlendMode) error {
+	if errno := C.SDL_SetRenderDrawBlendMode(r.r(), C.SDL_BlendMode(b)); errno != 0 {
+		return Err()
+	}
+	return nil
+}
+
 func (r *Renderer) SetDrawColour(c Colour) {
 	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.Red), C.Uint8(c.Green), C.Uint8(c.Blue), C.Uint8(c.Alpha))
 }

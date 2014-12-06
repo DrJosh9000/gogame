@@ -48,6 +48,13 @@ func (s *Surface) Size() (w, h int) {
 	return int(s.s().w), int(s.s().h)
 }
 
+func (s *Surface) SetBlendMode(b BlendMode) error {
+	if errno := C.SDL_SetSurfaceBlendMode(s.s(), C.SDL_BlendMode(b)); errno != 0 {
+		return Err()
+	}
+	return nil
+}
+
 type Alignment int
 
 const (
@@ -66,7 +73,7 @@ func Stack(surfs []*Surface, fill Colour, al Alignment) (*Surface, error) {
 		sumH += h
 	}
 
-	surf := C.SDL_CreateRGBSurface(0, C.int(maxW), C.int(sumH), 32, 0, 0, 0, 0)
+	surf := C.SDL_CreateRGBSurface(0, C.int(maxW), C.int(sumH), 32, 0xff000000, 0xff0000, 0xff00, 0xff)
 	if surf == nil {
 		return nil, Err()
 	}

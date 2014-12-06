@@ -2,14 +2,31 @@ package game
 
 // TODO: menu system goes here
 
-type menuAction func() error
-var menus = map[string]menuAction {
-	"Start game": func() error {
-		// TODO: start a game
-		return nil
+type menuItem struct {
+	action func() error
+	text   string
+}
+
+var menus = []menuItem{
+	{
+		text: "Start game",
+		action: func() error {
+			// TODO: start a game
+			return nil
+		},
 	},
-	"Quit": func() error {
-		notify("global", quitMsg)
-		return nil
+	{
+		text: "Level editor",
+		action: func() error {
+			// TODO: launch level editor
+			return nil
+		},
+	},
+	{
+		text: "Quit",
+		action: func() error {
+			notify("global", quitMsg)
+			return nil
+		},
 	},
 }

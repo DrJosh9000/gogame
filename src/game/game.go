@@ -96,7 +96,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	g.world.addChild(p)
 	g.hud.addChild(c)
 
-	testText, err := newText(ctx, "Hello World!\nWhat's happening?", sdl.WhiteColour, sdl.Colour{0x55, 0x11, 0x00, 0x00}, sdl.CentreAlign)
+	testText, err := newText(ctx, "Hello World!\nWhat's happening?", sdl.WhiteColour, sdl.TransparentColour, sdl.CentreAlign)
 	if err != nil {
 		return nil, err
 	}

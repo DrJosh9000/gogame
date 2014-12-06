@@ -96,7 +96,8 @@ func NewContext(title string, width, height int) (*Context, error) {
 		Renderer:       r,
 		TextureManager: NewTextureManager(r),
 	}
-	ctx.Renderer.SetDrawColour(BlackColour)
+	r.SetDrawColour(BlackColour)
+	r.SetDrawBlendMode(BlendModeBlend)
 	return ctx, nil
 }
 
