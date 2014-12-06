@@ -34,7 +34,6 @@ func newCursor(ctx *sdl.Context) (*cursor, error) {
 
 func (c *cursor) destroy() {
 	fmt.Println("cursor.destroy")
-	close(c.inbox)
 }
 
 func (c *cursor) life() {
@@ -42,16 +41,16 @@ func (c *cursor) life() {
 		//fmt.Printf("cursor.inbox got %+v\n", msg)
 		switch m := msg.v.(type) {
 		case *sdl.MouseButtonDownEvent:
-			c.x = m.X - cursorTemplate.frameWidth/2
-			c.y = m.Y - cursorTemplate.frameHeight/2
+			c.x = m.X - c.template.frameWidth/2
+			c.y = m.Y - c.template.frameHeight/2
 			c.frame = 1
 		case *sdl.MouseButtonUpEvent:
-			c.x = m.X - cursorTemplate.frameWidth/2
-			c.y = m.Y - cursorTemplate.frameHeight/2
+			c.x = m.X - c.template.frameWidth/2
+			c.y = m.Y - c.template.frameHeight/2
 			c.frame = 0
 		case *sdl.MouseMotionEvent:
-			c.x = m.X - cursorTemplate.frameWidth/2
-			c.y = m.Y - cursorTemplate.frameHeight/2
+			c.x = m.X - c.template.frameWidth/2
+			c.y = m.Y - c.template.frameHeight/2
 			c.frame = 0
 			if m.ButtonState&sdl.MouseLeftMask != 0 {
 				c.frame = 1

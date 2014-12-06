@@ -19,10 +19,11 @@ const (
 var gameInstance *Game
 
 type Game struct {
-	ctx    *sdl.Context
-	t0     time.Time
-	ticker *time.Ticker
-	inbox  chan message
+	running bool
+	ctx     *sdl.Context
+	t0      time.Time
+	ticker  *time.Ticker
+	inbox   chan message
 
 	sr    *sdl.Renderer
 	wr    *worldRenderer
@@ -72,8 +73,9 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 
 	g := &Game{
-		ctx: ctx,
-		t0:  time.Now(),
+		running: true,
+		ctx:     ctx,
+		t0:      time.Now(),
 		//ticker: time.NewTicker(gameTickerDuration),
 		sr: ctx.Renderer,
 		wr: &worldRenderer{
@@ -98,11 +100,11 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	// TODO: refactor menu creation
 	y := 200
 	for _, mi := range menus {
-		b, err := newButton(ctx, mi.text)
+		b, err := newButton(ctx, mi.text, mi.action)
 		if err != nil {
 			return nil, err
 		}
-		b.setPosition(512-128, y)
+		b.sprite.x, b.sprite.y = 512-128, y
 		y += 128
 		g.hud.addChild(b)
 	}
@@ -123,14 +125,19 @@ func (g *Game) messageLoop() {
 		case basicMsg:
 			switch m {
 			case quitMsg:
+				g.running = false
 				return
 			}
 		case locationMsg:
 			if msg.k == "player.location" {
 				g.wr.focus(m.x, m.y)
 			}
+		case sdl.QuitEvent:
+			notify("global", quitMsg)
 		case *sdl.KeyUpEvent:
 			switch m.KeyCode {
+			case 'q':
+				notify("global", quitMsg)
 			case 'e':
 				// Do teleport
 				g.lev.active = (g.lev.active + 1) % 2
@@ -154,6 +161,10 @@ func (g *Game) Destroy() {
 	notify("global", quitMsg)
 	g.world.destroy()
 	g.hud.destroy()
+}
+
+func (g *Game) Running() bool {
+	return g.running
 }
 
 func (g *Game) level() *level {

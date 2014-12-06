@@ -36,21 +36,9 @@ func main() {
 	}
 	defer g.Destroy()
 
-	for {
-		err := sdl.HandleEvents(func(e sdl.Event) error {
-			switch v := e.(type) {
-			case sdl.QuitEvent:
-				return quitting
-			case *sdl.KeyUpEvent:
-				if v.KeyCode == 'q' {
-					return quitting
-				}
-			}
-			// Get the game to handle all other keys
-			return g.HandleEvent(e)
-		})
-		if err == quitting {
-			return
+	for g.Running() {
+		if err := sdl.HandleEvents(g.HandleEvent); err != nil {
+			panic(err)
 		}
 		if err := r.Clear(); err != nil {
 			panic(err)

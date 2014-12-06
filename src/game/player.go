@@ -237,7 +237,6 @@ func (p *player) life() {
 	updater := time.NewTicker(playerUpdateInterval)
 	defer func() {
 		updater.Stop()
-		close(p.inbox)
 		fmt.Println("player.end of life")
 	}()
 	t0 := time.Now()
