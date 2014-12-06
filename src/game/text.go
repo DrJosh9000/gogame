@@ -14,7 +14,6 @@ const (
 var defaultFont *sdl.Font
 
 type text struct {
-	t          string
 	tex        *sdl.Texture
 	x, y, w, h int
 	invisible  bool
@@ -28,6 +27,9 @@ func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignme
 		}
 		defaultFont = f
 	}
+	if draw == sdl.TransparentColour {
+		return nil, nil
+	}
 	var texts, shadows []*sdl.Surface
 	b := bufio.NewScanner(strings.NewReader(s))
 	for b.Scan() {
@@ -36,18 +38,23 @@ func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignme
 			return nil, err
 		}
 		texts = append(texts, surf)
-		surf, err = defaultFont.RenderSolid(b.Text(), shadow)
-		if err != nil {
-			return nil, err
+		if shadow != sdl.TransparentColour {
+			surf, err := defaultFont.RenderSolid(b.Text(), shadow)
+			if err != nil {
+				return nil, err
+			}
+			shadows = append(shadows, surf)
 		}
-		shadows = append(shadows, surf)
 	}
 	if err := b.Err(); err != nil {
 		return nil, err
 	}
 
 	w, h := sdl.StackSize(texts)
-	surf, err := sdl.CreateRGBASurface(w+2, h+2)
+	if shadows != nil {
+		w, h = w+2, h+2
+	}
+	surf, err := sdl.CreateRGBASurface(w, h)
 	if err != nil {
 		return nil, err
 	}
@@ -64,16 +71,11 @@ func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignme
 	if err != nil {
 		return nil, err
 	}
-	return &text{
-		t:   s,
-		tex: tex,
-		w:   w + 2,
-		h:   h + 2,
-	}, nil
+	return &text{tex: tex, w: w, h: h}, nil
 }
 
 func (t *text) draw(r renderer) error {
-	if t.invisible {
+	if t == nil || t.invisible {
 		return nil
 	}
 	return r.Copy(t.tex,
@@ -82,6 +84,9 @@ func (t *text) draw(r renderer) error {
 }
 
 func (t *text) destroy() {
+	if t == nil {
+		return
+	}
 	if t.tex != nil {
 		t.tex.Destroy()
 	}

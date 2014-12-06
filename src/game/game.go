@@ -94,13 +94,19 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	g.lev.addChild(t1)
 	g.world.addChild(&g.lev)
 	g.world.addChild(p)
-	g.hud.addChild(c)
 
-	testText, err := newText(ctx, "Hello World!\nWhat's happening?", sdl.WhiteColour, sdl.BlackColour, sdl.CentreAlign)
-	if err != nil {
-		return nil, err
+	// TODO: refactor menu creation
+	y := 200
+	for _, mi := range menus {
+		b, err := newButton(ctx, mi.text)
+		if err != nil {
+			return nil, err
+		}
+		b.setPosition(512-128, y)
+		y += 128
+		g.hud.addChild(b)
 	}
-	g.hud.addChild(testText)
+	g.hud.addChild(c)
 
 	kmp("global", g.inbox)
 	kmp("player.location", g.inbox)
