@@ -2,7 +2,7 @@
 package game
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"sdl"
@@ -123,7 +123,7 @@ func (g *Game) messageLoop() {
 		g.running = false
 	}()
 	for msg := range g.inbox {
-		//fmt.Printf("game.inbox got %+v\n", msg)
+		//log.Printf("game.inbox got %+v\n", msg)
 		if msg.k == "quit" {
 			return
 		}
@@ -158,7 +158,7 @@ func (g *Game) Draw() error {
 }
 
 func (g *Game) Destroy() {
-	fmt.Println("game.destroy")
+	log.Print("game.destroy")
 	g.world.destroy()
 	g.hud.destroy()
 }

@@ -1,7 +1,7 @@
 package game
 
 import (
-	"fmt"
+	"log"
 	"math"
 	"time"
 
@@ -92,7 +92,7 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 }
 
 func (p *player) destroy() {
-	fmt.Println("player.destroy")
+	log.Print("player.destroy")
 }
 
 func (p *player) update(t time.Duration) {
@@ -169,12 +169,12 @@ func (p *player) handleMessage(msg message) {
 		case ' ':
 			ctl = StartJump
 		case 'w':
-			fmt.Println("w down")
+			log.Print("w down")
 			return
 		case 'a':
 			ctl = StartWalkLeft
 		case 's':
-			fmt.Println("s down")
+			log.Print("s down")
 			return
 		case 'd':
 			ctl = StartWalkRight
@@ -186,12 +186,12 @@ func (p *player) handleMessage(msg message) {
 		case ' ':
 			ctl = StopJump
 		case 'w':
-			fmt.Println("w up")
+			log.Print("w up")
 			return
 		case 'a':
 			ctl = StopWalkLeft
 		case 's':
-			fmt.Println("s up")
+			log.Print("s up")
 			return
 		case 'd':
 			ctl = StopWalkRight
@@ -233,7 +233,7 @@ func (p *player) life() {
 	updater := time.NewTicker(playerUpdateInterval)
 	defer func() {
 		updater.Stop()
-		fmt.Println("player.end of life")
+		log.Print("player.end of life")
 	}()
 	t0 := time.Now()
 	for {

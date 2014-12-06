@@ -1,7 +1,7 @@
 package game
 
 import (
-	"fmt"
+	"log"
 	"sdl"
 )
 
@@ -33,12 +33,12 @@ func newCursor(ctx *sdl.Context) (*cursor, error) {
 }
 
 func (c *cursor) destroy() {
-	fmt.Println("cursor.destroy")
+	log.Print("cursor.destroy")
 }
 
 func (c *cursor) life() {
 	for msg := range c.inbox {
-		//fmt.Printf("cursor.inbox got %+v\n", msg)
+		//log.Printf("cursor.inbox got %+v\n", msg)
 		switch m := msg.v.(type) {
 		case *sdl.MouseButtonDownEvent:
 			c.x = m.X - c.template.frameWidth/2
