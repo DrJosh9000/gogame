@@ -39,7 +39,7 @@ func newExit(ctx *sdl.Context) (*exit, error) {
 		sprite: s,
 		inbox:  make(chan message, 10),
 	}
-	kmp("global", e.inbox)
+	kmp("quit", e.inbox)
 	kmp("player.location", e.inbox)
 	go e.life()
 	return e, nil
@@ -51,16 +51,14 @@ func (e *exit) destroy() {
 
 func (e *exit) life() {
 	updater := time.NewTicker(100 * time.Millisecond)
-	defer updater.Stop()
 	for {
 		select {
 		case msg := <-e.inbox:
+			if msg.k == "quit" {
+				return
+			}
 			//fmt.Printf("exit.inbox got %+v\n", msg)
 			switch m := msg.v.(type) {
-			case basicMsg:
-				if m == quitMsg {
-					return
-				}
 			case locationMsg:
 				if msg.k == "player.location" {
 					// If the player is near the door, open it;
@@ -85,4 +83,5 @@ func (e *exit) life() {
 			}
 		}
 	}
+	updater.Stop()
 }

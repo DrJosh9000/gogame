@@ -37,7 +37,7 @@ func newButton(ctx *sdl.Context, label string, action func() error) (*button, er
 		inbox:  make(chan message, 10),
 		action: action,
 	}
-	kmp("global", b.inbox)
+	kmp("quit", b.inbox)
 	kmp("input.event", b.inbox)
 	go b.life()
 	return b, nil
@@ -74,11 +74,10 @@ func (b *button) hitTest(x, y int) bool {
 
 func (b *button) life() {
 	for msg := range b.inbox {
+		if msg.k == "quit" {
+			return
+		}
 		switch m := msg.v.(type) {
-		case basicMsg:
-			if m == quitMsg {
-				return
-			}
 		case *sdl.MouseButtonDownEvent:
 			if b.hitTest(m.X, m.Y) {
 				b.frame = 1

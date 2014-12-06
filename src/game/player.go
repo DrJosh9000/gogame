@@ -85,7 +85,7 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 		inbox:  make(chan message, 10),
 	}
 
-	kmp("global", p.inbox)
+	kmp("quit", p.inbox)
 	kmp("input.event", p.inbox)
 	go p.life()
 	return p, nil
@@ -160,7 +160,7 @@ func (p *player) update(t time.Duration) {
 	notify("player.location", locationMsg{o: p, x: p.x, y: p.y})
 }
 
-func (p *player) handleMessage(msg message) bool {
+func (p *player) handleMessage(msg message) {
 	// TODO: Replace with configurable control map.
 	var ctl playerControl
 	switch v := msg.v.(type) {
@@ -170,16 +170,16 @@ func (p *player) handleMessage(msg message) bool {
 			ctl = StartJump
 		case 'w':
 			fmt.Println("w down")
-			return false
+			return
 		case 'a':
 			ctl = StartWalkLeft
 		case 's':
 			fmt.Println("s down")
-			return false
+			return
 		case 'd':
 			ctl = StartWalkRight
 		default:
-			return false
+			return
 		}
 	case *sdl.KeyUpEvent:
 		switch v.KeyCode {
@@ -187,25 +187,21 @@ func (p *player) handleMessage(msg message) bool {
 			ctl = StopJump
 		case 'w':
 			fmt.Println("w up")
-			return false
+			return
 		case 'a':
 			ctl = StopWalkLeft
 		case 's':
 			fmt.Println("s up")
-			return false
+			return
 		case 'd':
 			ctl = StopWalkRight
 		case 'e':
 			ctl = Teleport
 		default:
-			return false
-		}
-	case basicMsg:
-		if v == quitMsg {
-			return true
+			return
 		}
 	default:
-		return false
+		return
 	}
 
 	switch ctl {
@@ -230,7 +226,7 @@ func (p *player) handleMessage(msg message) bool {
 	default:
 		// TODO: more actions
 	}
-	return false
+	return
 }
 
 func (p *player) life() {
@@ -242,11 +238,12 @@ func (p *player) life() {
 	t0 := time.Now()
 	for {
 		select {
-		case c := <-p.inbox:
-			//fmt.Printf("player.inbox got %+v\n", c)
-			if p.handleMessage(c) {
+		case msg := <-p.inbox:
+			//fmt.Printf("player.inbox got %+v\n", msg)
+			if msg.k == "quit" {
 				return
 			}
+			p.handleMessage(msg)
 		case t := <-updater.C:
 			//fmt.Printf("player.updater got %+v\n", t)
 			p.update(t.Sub(t0))

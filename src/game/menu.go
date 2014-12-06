@@ -25,7 +25,7 @@ var menus = []menuItem{
 	{
 		text: "Quit",
 		action: func() error {
-			notify("global", quitMsg)
+			quit()
 			return nil
 		},
 	},

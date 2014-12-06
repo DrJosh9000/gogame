@@ -110,7 +110,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 	g.hud.addChild(c)
 
-	kmp("global", g.inbox)
+	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)
 	kmp("input.event", g.inbox)
 	go g.messageLoop()
@@ -119,31 +119,32 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 }
 
 func (g *Game) messageLoop() {
+	defer func() {
+		g.running = false
+	}()
 	for msg := range g.inbox {
 		//fmt.Printf("game.inbox got %+v\n", msg)
+		if msg.k == "quit" {
+			return
+		}
 		switch m := msg.v.(type) {
-		case basicMsg:
-			switch m {
-			case quitMsg:
-				g.running = false
-				return
-			}
 		case locationMsg:
 			if msg.k == "player.location" {
 				g.wr.focus(m.x, m.y)
 			}
 		case sdl.QuitEvent:
-			notify("global", quitMsg)
+			quit()
 		case *sdl.KeyUpEvent:
 			switch m.KeyCode {
 			case 'q':
-				notify("global", quitMsg)
+				quit()
 			case 'e':
 				// Do teleport
 				g.lev.active = (g.lev.active + 1) % 2
 			}
 		}
 	}
+
 }
 
 func (g *Game) Draw() error {
@@ -158,7 +159,6 @@ func (g *Game) Draw() error {
 
 func (g *Game) Destroy() {
 	fmt.Println("game.destroy")
-	notify("global", quitMsg)
 	g.world.destroy()
 	g.hud.destroy()
 }

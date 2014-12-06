@@ -8,7 +8,7 @@ type message struct {
 }
 
 // notes keeps track of all registered channels.
-var notes = map[string][](chan message){}
+var notes = make(map[string][](chan message))
 
 // kmp stands for "keep me posted", and registers a callback channel
 // for messages sent to a given key.
@@ -25,13 +25,12 @@ func notify(key string, value interface{}) {
 	}
 }
 
+// quit sends a nil value on every channel.
+func quit() {
+	notify("quit", nil)
+}
+
 // Message body types.
-
-type basicMsg string
-
-var (
-	quitMsg = basicMsg("quit")
-)
 
 type locationMsg struct {
 	o    interface{}
