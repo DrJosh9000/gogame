@@ -106,8 +106,9 @@ func StackSize(surfs []*Surface) (width, height int) {
 	return maxW, sumH
 }
 
+// Stack blits a slice of surfaces in a vertical arrangement.
 func Stack(dest *Surface, surfs []*Surface, x, y, maxW int, al Alignment) error {
-	dstRect := Rect{Y: y}
+	dstRect := Rect{X: x, Y: y}
 	for _, s := range surfs {
 		w, h := s.Size()
 		dstRect.W = w
