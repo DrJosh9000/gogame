@@ -20,7 +20,7 @@ type text struct {
 	invisible  bool
 }
 
-func newText(ctx *sdl.Context, s string, c, fill sdl.Colour, al sdl.Alignment) (*text, error) {
+func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignment) (*text, error) {
 	if defaultFont == nil {
 		f, err := sdl.LoadFont(defaultFontFile, defaultFontSize)
 		if err != nil {
@@ -28,38 +28,47 @@ func newText(ctx *sdl.Context, s string, c, fill sdl.Colour, al sdl.Alignment) (
 		}
 		defaultFont = f
 	}
-	var surfs []*sdl.Surface
+	var texts, shadows []*sdl.Surface
 	b := bufio.NewScanner(strings.NewReader(s))
 	for b.Scan() {
-		surf, err := defaultFont.RenderSolid(b.Text(), c)
+		surf, err := defaultFont.RenderSolid(b.Text(), draw)
 		if err != nil {
 			return nil, err
 		}
-		surfs = append(surfs, surf)
+		texts = append(texts, surf)
+		surf, err = defaultFont.RenderSolid(b.Text(), shadow)
+		if err != nil {
+			return nil, err
+		}
+		shadows = append(shadows, surf)
 	}
 	if err := b.Err(); err != nil {
 		return nil, err
 	}
-	surf, err := sdl.Stack(surfs, fill, al)
+
+	w, h := sdl.StackSize(texts)
+	surf, err := sdl.CreateRGBASurface(w+2, h+2)
 	if err != nil {
 		return nil, err
 	}
 	if err := surf.SetBlendMode(sdl.BlendModeBlend); err != nil {
 		return nil, err
 	}
-	w, h := surf.Size()
-	tex, err := ctx.Renderer.TextureFromSurface(surf)
-	if err != nil {
+	if err := sdl.Stack(surf, shadows, 2, 2, w, al); err != nil {
 		return nil, err
 	}
-	if err := tex.SetBlendMode(sdl.BlendModeBlend); err != nil {
+	if err := sdl.Stack(surf, texts, 0, 0, w, al); err != nil {
+		return nil, err
+	}
+	tex, err := ctx.Renderer.TextureFromSurface(surf)
+	if err != nil {
 		return nil, err
 	}
 	return &text{
 		t:   s,
 		tex: tex,
-		w:   w,
-		h:   h,
+		w:   w + 2,
+		h:   h + 2,
 	}, nil
 }
 
