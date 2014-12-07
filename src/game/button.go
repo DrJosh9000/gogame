@@ -21,9 +21,10 @@ type button struct {
 	text   *text
 	inbox  chan message
 	action func() error
+	parent *complexBase
 }
 
-func newButton(ctx *sdl.Context, template *spriteTemplate, label string, action func() error) (*button, error) {
+func newButton(ctx *sdl.Context, parent *complexBase, template *spriteTemplate, label string, action func() error) (*button, error) {
 	s, err := template.new(ctx)
 	if err != nil {
 		return nil, err
@@ -32,6 +33,7 @@ func newButton(ctx *sdl.Context, template *spriteTemplate, label string, action 
 		sprite: s,
 		inbox:  make(chan message, 10),
 		action: action,
+		parent: parent,
 	}
 	if label != "" {
 		t, err := newText(ctx, label, sdl.BlackColour, sdl.TransparentColour, sdl.CentreAlign)
@@ -75,8 +77,14 @@ func (b *button) destroy() {
 	b.text.destroy()
 }
 
+// hitTest tests screen coordinates against the button bounds.
 func (b *button) hitTest(x, y int) bool {
-	return !b.invisible && x >= b.x && x <= b.x+b.template.frameWidth && y >= b.y && y <= b.y+b.template.frameHeight
+	return !b.invisible &&
+		!b.parent.invisible &&
+		x >= b.x+b.parent.x &&
+		x <= b.x+b.parent.x+b.template.frameWidth &&
+		y >= b.y+b.parent.y &&
+		y <= b.y+b.parent.y+b.template.frameHeight
 }
 
 func (b *button) life() {
