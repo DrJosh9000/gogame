@@ -32,14 +32,14 @@ type Game struct {
 	clock *time.Ticker
 	inbox chan message
 
-	renderer *sdl.Renderer
-	wv       *worldView
-	world    complexBase
-	hud      complexBase
+	renderer   *sdl.Renderer
+	wv         *worldView
+	world, hud complexBase
 
 	// Special game objects.
 	// TODO: OHDOG
 	cursor *cursor
+	menu   *menu
 	player *player
 	exit   *exit
 	lev    unionObject
@@ -79,8 +79,13 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		return nil, err
 	}
 
+	menu, err := newMenu(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	g := &Game{
-		state:    gameStateRunning,
+		state:    gameStateMenu,
 		ctx:      ctx,
 		clock:    time.NewTicker(clockDuration),
 		renderer: ctx.Renderer,
@@ -90,6 +95,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		},
 		inbox:  make(chan message, 10),
 		cursor: c,
+		menu:   menu,
 		player: p,
 		levels: [2]*level{m0, m1},
 	}
@@ -102,16 +108,10 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	g.world.addChild(&g.lev)
 	g.world.addChild(p)
 
-	menu, err := newMenu(ctx)
-	if err != nil {
-		return nil, err
-	}
-	g.hud.addChild(menu)
-	g.hud.addChild(c)
-
 	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)
 	kmp("input.event", g.inbox)
+	kmp("menuAction", g.inbox)
 	go g.life()
 	go g.pulse()
 	return g, nil
@@ -123,8 +123,17 @@ func (g *Game) life() {
 	}()
 	for msg := range g.inbox {
 		//log.Printf("game.inbox got %+v\n", msg)
-		if msg.k == "quit" {
+		switch msg.k {
+		case "quit":
 			return
+		case "menuAction":
+			switch msg.v.(string) {
+			case "start":
+				g.menu.invisible = true
+				g.state = gameStateRunning
+			case "levelEdit":
+				g.menu.invisible = true
+			}
 		}
 		switch m := msg.v.(type) {
 		case locationMsg:
@@ -166,7 +175,17 @@ func (g *Game) Draw() error {
 	g.renderer.PopOffset()
 
 	// Draw the HUD in screen coordinates.
-	return g.hud.draw(g.renderer)
+	if err := g.hud.draw(g.renderer); err != nil {
+		return err
+	}
+
+	// Draw the menu in screen coordinates.
+	if err := g.menu.draw(g.renderer); err != nil {
+		return err
+	}
+
+	// Draw the cursor, always, in screen coordinates.
+	return g.cursor.draw(g.renderer)
 }
 
 func (g *Game) Destroy() {
@@ -174,6 +193,7 @@ func (g *Game) Destroy() {
 	g.clock.Stop()
 	g.world.destroy()
 	g.hud.destroy()
+	g.cursor.destroy()
 }
 
 func (g *Game) Quitting() bool {

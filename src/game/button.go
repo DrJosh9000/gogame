@@ -21,10 +21,10 @@ type button struct {
 	text   *text
 	inbox  chan message
 	action func() error
-	parent *complexBase
+	parent *menu
 }
 
-func newButton(ctx *sdl.Context, parent *complexBase, template *spriteTemplate, label string, action func() error) (*button, error) {
+func newButton(ctx *sdl.Context, parent *menu, template *spriteTemplate, label string, action func() error) (*button, error) {
 	s, err := template.new(ctx)
 	if err != nil {
 		return nil, err
