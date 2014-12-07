@@ -34,7 +34,7 @@ func (b *complexBase) draw(r *sdl.Renderer) error {
 	if b.invisible {
 		return nil
 	}
-	r.PushOffset(-b.x, -b.y)
+	r.PushOffset(b.x, b.y)
 	defer r.PopOffset()
 	for _, c := range b.kids {
 		if c != nil {
@@ -65,7 +65,7 @@ func (u *unionObject) draw(r *sdl.Renderer) error {
 	if u.invisible {
 		return nil
 	}
-	r.PushOffset(-u.x, -u.y)
+	r.PushOffset(u.x, u.y)
 	defer r.PopOffset()
 	return u.kids[u.active].draw(r)
 }

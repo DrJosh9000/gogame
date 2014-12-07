@@ -41,8 +41,8 @@ func newMenu(ctx *sdl.Context) (*complexBase, error) {
 		if err != nil {
 			return nil, err
 		}
-		b.x, b.y = 512-128, y
-		y += 128
+		b.x, b.y = (1024-buttonTemplate.frameWidth)/2, y
+		y += 96
 		base.addChild(b)
 	}
 	return base, nil

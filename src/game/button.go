@@ -15,6 +15,7 @@ var buttonTemplate = &spriteTemplate{
 	frameHeight: 64,
 }
 
+// button is a clickable region on screen with optional text.
 type button struct {
 	*sprite
 	text   *text
@@ -27,17 +28,19 @@ func newButton(ctx *sdl.Context, template *spriteTemplate, label string, action 
 	if err != nil {
 		return nil, err
 	}
-	t, err := newText(ctx, label, sdl.BlackColour, sdl.TransparentColour, sdl.CentreAlign)
-	if err != nil {
-		return nil, err
-	}
-	t.x = (template.frameWidth - t.w) / 2
-	t.y = (template.frameHeight - t.h) / 2
 	b := &button{
 		sprite: s,
-		text:   t,
 		inbox:  make(chan message, 10),
 		action: action,
+	}
+	if label != "" {
+		t, err := newText(ctx, label, sdl.BlackColour, sdl.TransparentColour, sdl.CentreAlign)
+		if err != nil {
+			return nil, err
+		}
+		t.x = (template.frameWidth - t.w) / 2
+		t.y = (template.frameHeight - t.h) / 2
+		b.text = t
 	}
 	kmp("quit", b.inbox)
 	kmp("input.event", b.inbox)
