@@ -32,10 +32,10 @@ type Game struct {
 	clock *time.Ticker
 	inbox chan message
 
-	sr    *sdl.Renderer
-	wr    *worldRenderer
-	world complexBase
-	hud   complexBase
+	renderer *sdl.Renderer
+	wv       *worldView
+	world    complexBase
+	hud      complexBase
 
 	// Special game objects.
 	// TODO: OHDOG
@@ -80,12 +80,11 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 
 	g := &Game{
-		state: gameStateRunning,
-		ctx:   ctx,
-		clock: time.NewTicker(clockDuration),
-		sr:    ctx.Renderer,
-		wr: &worldRenderer{
-			r:     ctx.Renderer,
+		state:    gameStateRunning,
+		ctx:      ctx,
+		clock:    time.NewTicker(clockDuration),
+		renderer: ctx.Renderer,
+		wv: &worldView{
 			view:  sdl.Rect{0, 0, 1024, 768},
 			world: sdl.Rect{0, 0, 4096, 768}, // TODO: derive from terrain
 		},
@@ -96,24 +95,18 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 	gameInstance = g
 	p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
-	g.wr.focus(p.x, p.y)
+	g.wv.focus(p.x, p.y)
 
 	g.lev.addChild(t0)
 	g.lev.addChild(t1)
 	g.world.addChild(&g.lev)
 	g.world.addChild(p)
 
-	// TODO: refactor menu creation
-	y := 200
-	for _, mi := range menus {
-		b, err := newButton(ctx, mi.text, mi.action)
-		if err != nil {
-			return nil, err
-		}
-		b.sprite.x, b.sprite.y = 512-128, y
-		y += 128
-		g.hud.addChild(b)
+	menu, err := newMenu(ctx)
+	if err != nil {
+		return nil, err
 	}
+	g.hud.addChild(menu)
 	g.hud.addChild(c)
 
 	kmp("quit", g.inbox)
@@ -136,7 +129,7 @@ func (g *Game) life() {
 		switch m := msg.v.(type) {
 		case locationMsg:
 			if msg.k == "player.location" {
-				g.wr.focus(m.x, m.y)
+				g.wv.focus(m.x, m.y)
 			}
 		case sdl.QuitEvent:
 			quit()
@@ -165,12 +158,15 @@ func (g *Game) pulse() {
 
 func (g *Game) Draw() error {
 	// Draw everything in the world in world coordinates.
-	if err := g.world.draw(g.wr); err != nil {
+	g.renderer.PushOffset(-g.wv.view.X, -g.wv.view.Y)
+	defer g.renderer.ResetOffset()
+	if err := g.world.draw(g.renderer); err != nil {
 		return err
 	}
+	g.renderer.PopOffset()
 
 	// Draw the HUD in screen coordinates.
-	return g.hud.draw(g.sr)
+	return g.hud.draw(g.renderer)
 }
 
 func (g *Game) Destroy() {
@@ -193,14 +189,13 @@ func (g *Game) HandleEvent(ev sdl.Event) error {
 	return nil
 }
 
-type worldRenderer struct {
-	r           renderer
+type worldView struct {
 	view, world sdl.Rect
 }
 
-// focus moves the world renderer viewport to include the point. Generally this
+// focus moves the world viewport to include the point. Generally this
 // would be used to focus on the player. It snaps immediately, no smoothing.
-func (r *worldRenderer) focus(x, y int) {
+func (r *worldView) focus(x, y int) {
 	// Keep the point in view.
 	left, right := r.view.W/4, 3*r.view.W/4
 	if x-r.view.X > right {
@@ -230,18 +225,4 @@ func (r *worldRenderer) focus(x, y int) {
 	if r.view.Y+r.view.H > r.world.Y+r.world.H {
 		r.view.Y = r.world.Y + r.world.H - r.view.H
 	}
-}
-
-func (r *worldRenderer) Copy(t *sdl.Texture, src, dst sdl.Rect) error {
-	dst.X -= r.view.X
-	dst.Y -= r.view.Y
-	return r.r.Copy(t, src, dst)
-}
-
-func (r *worldRenderer) CopyEx(t *sdl.Texture, src, dst sdl.Rect, angle float64, center sdl.Point, flip sdl.RendererFlip) error {
-	dst.X -= r.view.X
-	dst.Y -= r.view.Y
-	center.X -= r.view.X
-	center.Y -= r.view.Y
-	return r.r.CopyEx(t, src, dst, angle, center, flip)
 }

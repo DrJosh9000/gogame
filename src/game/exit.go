@@ -17,8 +17,7 @@ var exitTemplate = &spriteTemplate{
 type exit struct {
 	*sprite
 	state, wantState int
-
-	inbox chan message
+	inbox            chan message
 }
 
 func newExit(ctx *sdl.Context) (*exit, error) {

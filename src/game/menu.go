@@ -1,6 +1,8 @@
 package game
 
-// TODO: menu system goes here
+import (
+	"sdl"
+)
 
 type menuItem struct {
 	action func() error
@@ -29,4 +31,19 @@ var menus = []menuItem{
 			return nil
 		},
 	},
+}
+
+func newMenu(ctx *sdl.Context) (*complexBase, error) {
+	base := new(complexBase)
+	y := 200
+	for _, mi := range menus {
+		b, err := newButton(ctx, buttonTemplate, mi.text, mi.action)
+		if err != nil {
+			return nil, err
+		}
+		b.x, b.y = 512-128, y
+		y += 128
+		base.addChild(b)
+	}
+	return base, nil
 }

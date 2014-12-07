@@ -27,7 +27,7 @@ type sprite struct {
 	invisible   bool
 }
 
-func (s *sprite) draw(r renderer) error {
+func (s *sprite) draw(r *sdl.Renderer) error {
 	if s.invisible {
 		return nil
 	}

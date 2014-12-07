@@ -22,8 +22,8 @@ type button struct {
 	action func() error
 }
 
-func newButton(ctx *sdl.Context, label string, action func() error) (*button, error) {
-	s, err := buttonTemplate.new(ctx)
+func newButton(ctx *sdl.Context, template *spriteTemplate, label string, action func() error) (*button, error) {
+	s, err := template.new(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +31,8 @@ func newButton(ctx *sdl.Context, label string, action func() error) (*button, er
 	if err != nil {
 		return nil, err
 	}
+	t.x = (template.frameWidth - t.w) / 2
+	t.y = (template.frameHeight - t.h) / 2
 	b := &button{
 		sprite: s,
 		text:   t,
@@ -43,18 +45,16 @@ func newButton(ctx *sdl.Context, label string, action func() error) (*button, er
 	return b, nil
 }
 
-func (b *button) draw(r renderer) error {
+func (b *button) draw(r *sdl.Renderer) error {
 	if b == nil || b.invisible {
 		return nil
 	}
 	if err := b.sprite.draw(r); err != nil {
 		return err
 	}
-	b.text.x = b.x + (b.template.frameWidth-b.text.w)/2
-	b.text.y = b.y + (b.template.frameHeight-b.text.h)/2
-	if b.frame == 1 {
-		b.text.y += 8
-	}
+
+	r.PushOffset(b.x, b.y)
+	defer r.PopOffset()
 	if err := b.text.draw(r); err != nil {
 		return err
 	}
@@ -81,6 +81,7 @@ func (b *button) life() {
 		case *sdl.MouseButtonDownEvent:
 			if b.hitTest(m.X, m.Y) {
 				b.frame = 1
+				b.text.y += 8
 			}
 		case *sdl.MouseButtonUpEvent:
 			if b.hitTest(m.X, m.Y) {
@@ -88,12 +89,16 @@ func (b *button) life() {
 					if err := b.action(); err != nil {
 						log.Printf("error running menu item action: %v\n", err)
 					}
+					b.frame = 0
+					b.text.y -= 8
 				}
-				b.frame = 0
 			}
 		case *sdl.MouseMotionEvent:
 			if !b.hitTest(m.X, m.Y) {
-				b.frame = 0
+				if b.frame == 1 {
+					b.text.y -= 8
+					b.frame = 0
+				}
 			}
 		}
 	}

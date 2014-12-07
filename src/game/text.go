@@ -74,7 +74,7 @@ func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignme
 	return &text{tex: tex, w: w, h: h}, nil
 }
 
-func (t *text) draw(r renderer) error {
+func (t *text) draw(r *sdl.Renderer) error {
 	if t == nil || t.invisible {
 		return nil
 	}
