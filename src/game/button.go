@@ -55,6 +55,10 @@ func (b *button) draw(r *sdl.Renderer) error {
 
 	r.PushOffset(b.x, b.y)
 	defer r.PopOffset()
+	if b.frame == 1 {
+		r.PushOffset(0, 8)
+		defer r.PopOffset()
+	}
 	if err := b.text.draw(r); err != nil {
 		return err
 	}
@@ -81,7 +85,6 @@ func (b *button) life() {
 		case *sdl.MouseButtonDownEvent:
 			if b.hitTest(m.X, m.Y) {
 				b.frame = 1
-				b.text.y += 8
 			}
 		case *sdl.MouseButtonUpEvent:
 			if b.hitTest(m.X, m.Y) {
@@ -89,16 +92,12 @@ func (b *button) life() {
 					if err := b.action(); err != nil {
 						log.Printf("error running menu item action: %v\n", err)
 					}
-					b.frame = 0
-					b.text.y -= 8
 				}
+				b.frame = 0
 			}
 		case *sdl.MouseMotionEvent:
 			if !b.hitTest(m.X, m.Y) {
-				if b.frame == 1 {
-					b.text.y -= 8
-					b.frame = 0
-				}
+				b.frame = 0
 			}
 		}
 	}
