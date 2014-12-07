@@ -36,7 +36,7 @@ func main() {
 	}
 	defer g.Destroy()
 
-	for g.Running() {
+	for !g.Quitting() {
 		if err := sdl.HandleEvents(g.HandleEvent); err != nil {
 			panic(err)
 		}

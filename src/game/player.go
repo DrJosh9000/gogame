@@ -86,6 +86,7 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 	}
 
 	kmp("quit", p.inbox)
+	kmp("clock", p.inbox)
 	kmp("input.event", p.inbox)
 	go p.life()
 	return p, nil
@@ -230,23 +231,16 @@ func (p *player) handleMessage(msg message) {
 }
 
 func (p *player) life() {
-	updater := time.NewTicker(playerUpdateInterval)
-	defer func() {
-		updater.Stop()
-		log.Print("player.end of life")
-	}()
-	t0 := time.Now()
-	for {
-		select {
-		case msg := <-p.inbox:
-			//fmt.Printf("player.inbox got %+v\n", msg)
-			if msg.k == "quit" {
-				return
-			}
+	defer log.Print("player.end of life")
+	for msg := range p.inbox {
+		//fmt.Printf("player.inbox got %+v\n", msg)
+		switch msg.k {
+		case "quit":
+			return
+		case "clock":
+			p.update(msg.v.(time.Duration))
+		default:
 			p.handleMessage(msg)
-		case t := <-updater.C:
-			//fmt.Printf("player.updater got %+v\n", t)
-			p.update(t.Sub(t0))
 		}
 	}
 }

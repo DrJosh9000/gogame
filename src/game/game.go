@@ -9,21 +9,28 @@ import (
 )
 
 const (
-	gameTickerDuration = 10 * time.Millisecond
+	clockDuration = 10 * time.Millisecond
 
 	level0File  = "assets/level0.txt"
 	level1AFile = "assets/level1a.txt"
 	level1BFile = "assets/level1b.txt"
 )
 
+type gameState int
+
+const (
+	gameStateRunning = iota
+	gameStateMenu
+	gameStateQuitting
+)
+
 var gameInstance *Game
 
 type Game struct {
-	running bool
-	ctx     *sdl.Context
-	t0      time.Time
-	ticker  *time.Ticker
-	inbox   chan message
+	state gameState
+	ctx   *sdl.Context
+	clock *time.Ticker
+	inbox chan message
 
 	sr    *sdl.Renderer
 	wr    *worldRenderer
@@ -73,11 +80,10 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 
 	g := &Game{
-		running: true,
-		ctx:     ctx,
-		t0:      time.Now(),
-		//ticker: time.NewTicker(gameTickerDuration),
-		sr: ctx.Renderer,
+		state: gameStateRunning,
+		ctx:   ctx,
+		clock: time.NewTicker(clockDuration),
+		sr:    ctx.Renderer,
 		wr: &worldRenderer{
 			r:     ctx.Renderer,
 			view:  sdl.Rect{0, 0, 1024, 768},
@@ -113,14 +119,14 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)
 	kmp("input.event", g.inbox)
-	go g.messageLoop()
-
+	go g.life()
+	go g.pulse()
 	return g, nil
 }
 
-func (g *Game) messageLoop() {
+func (g *Game) life() {
 	defer func() {
-		g.running = false
+		g.state = gameStateQuitting
 	}()
 	for msg := range g.inbox {
 		//log.Printf("game.inbox got %+v\n", msg)
@@ -144,7 +150,17 @@ func (g *Game) messageLoop() {
 			}
 		}
 	}
+}
 
+// pulse notifies the "clock" key with events from g.clock when the game is
+// playing.
+func (g *Game) pulse() {
+	t0 := time.Now()
+	for t := range g.clock.C {
+		if g.state == gameStateRunning {
+			notify("clock", t.Sub(t0))
+		}
+	}
 }
 
 func (g *Game) Draw() error {
@@ -159,12 +175,13 @@ func (g *Game) Draw() error {
 
 func (g *Game) Destroy() {
 	log.Print("game.destroy")
+	g.clock.Stop()
 	g.world.destroy()
 	g.hud.destroy()
 }
 
-func (g *Game) Running() bool {
-	return g.running
+func (g *Game) Quitting() bool {
+	return g.state == gameStateQuitting
 }
 
 func (g *Game) level() *level {
