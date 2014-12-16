@@ -51,7 +51,7 @@ func (b *complexBase) draw(r *sdl.Renderer) error {
 
 func (b *complexBase) destroy() {
 	for _, c := range b.kids {
-		if d := c.(destroyer); d != nil {
+		if d, ok := c.(destroyer); ok {
 			d.destroy()
 		}
 	}

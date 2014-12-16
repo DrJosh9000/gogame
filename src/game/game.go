@@ -199,7 +199,6 @@ func (g *Game) Destroy() {
 	g.clock.Stop()
 	g.world.destroy()
 	g.hud.destroy()
-	g.cursor.destroy()
 }
 
 func (g *Game) Quitting() bool {
