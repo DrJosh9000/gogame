@@ -1,8 +1,6 @@
 package game
 
 import (
-	"log"
-
 	"sdl"
 )
 
@@ -34,10 +32,6 @@ func newExit(ctx *sdl.Context) (*exit, error) {
 	kmp("player.location", e.inbox)
 	go e.life()
 	return e, nil
-}
-
-func (e *exit) destroy() {
-	log.Print("exit.destroy")
 }
 
 func (e *exit) life() {

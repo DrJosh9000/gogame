@@ -1,7 +1,6 @@
 package game
 
 import (
-	"log"
 	"sdl"
 )
 
@@ -30,10 +29,6 @@ func newCursor(ctx *sdl.Context) (*cursor, error) {
 	kmp("input.event", c.inbox)
 	go c.life()
 	return c, nil
-}
-
-func (c *cursor) destroy() {
-	log.Print("cursor.destroy")
 }
 
 func (c *cursor) life() {

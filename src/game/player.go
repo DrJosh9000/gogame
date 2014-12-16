@@ -92,10 +92,6 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 	return p, nil
 }
 
-func (p *player) destroy() {
-	log.Print("player.destroy")
-}
-
 func (p *player) update(t time.Duration) {
 	if p.lastUpdate == 0 {
 		p.lastUpdate = t

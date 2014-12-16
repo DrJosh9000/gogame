@@ -4,29 +4,32 @@ import (
 	"sdl"
 )
 
-type object interface {
-	destroy()
+type drawer interface {
 	draw(*sdl.Renderer) error
 }
 
+type destroyer interface {
+	destroy()
+}
+
 type complexObject interface {
-	object
-	addChild(object)
-	children() []object
+	drawer
+	addChild(drawer)
+	children() []drawer
 }
 
 // complexBase is a starting point for implementing complexObject.
 type complexBase struct {
-	kids      []object
+	kids      []drawer
 	invisible bool
 	x, y      int
 }
 
-func (b *complexBase) addChild(c object) {
+func (b *complexBase) addChild(c drawer) {
 	b.kids = append(b.kids, c)
 }
 
-func (b *complexBase) children() []object {
+func (b *complexBase) children() []drawer {
 	return b.kids
 }
 
@@ -48,8 +51,8 @@ func (b *complexBase) draw(r *sdl.Renderer) error {
 
 func (b *complexBase) destroy() {
 	for _, c := range b.kids {
-		if c != nil {
-			c.destroy()
+		if d := c.(destroyer); d != nil {
+			d.destroy()
 		}
 	}
 }

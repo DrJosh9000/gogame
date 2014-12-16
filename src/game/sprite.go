@@ -37,3 +37,10 @@ func (s *sprite) draw(r *sdl.Renderer) error {
 		sdl.Rect{srcX, srcY, s.template.frameWidth, s.template.frameHeight},
 		sdl.Rect{s.x, s.y, s.template.frameWidth, s.template.frameHeight})
 }
+
+func (s *sprite) destroy() {
+	if s == nil {
+		return
+	}
+	s.tex.Destroy()
+}
