@@ -143,13 +143,15 @@ func (p *player) update(t time.Duration) {
 		p.ddy = 0
 	}
 
-	if gameInstance.level().isPointSolid(nx-p.template.baseX-1, ny) {
-		nx = (nx/tileTemplate.frameWidth)*tileTemplate.frameWidth + p.template.baseX
+	testX := nx - p.template.baseX - 1
+	if gameInstance.level().isPointSolid(testX, ny) {
+		nx = (floorDiv(testX, tileTemplate.frameWidth)+1)*tileTemplate.frameWidth + p.template.baseX + 1
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
-	if gameInstance.level().isPointSolid(nx-p.template.baseX+32, ny) {
-		nx = (nx/tileTemplate.frameWidth)*tileTemplate.frameWidth + p.template.baseX
+	testX = nx - p.template.baseX + p.template.frameWidth
+	if gameInstance.level().isPointSolid(testX, ny) {
+		nx = floorDiv(testX, tileTemplate.frameWidth)*tileTemplate.frameWidth - p.template.frameWidth + p.template.baseX
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}

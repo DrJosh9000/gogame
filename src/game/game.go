@@ -106,12 +106,14 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	g.lev.addChild(t0)
 	g.lev.addChild(t1)
 	g.world.addChild(&g.lev)
-	h, err := newHex(ctx)
-	if err != nil {
-		return nil, err
+	for i := 0; i < 4; i++ {
+		h, err := newHex(ctx)
+		if err != nil {
+			return nil, err
+		}
+		h.x, h.y = i*96, i*32
+		g.world.addChild(h)
 	}
-	h.x, h.y = 400, 400
-	g.world.addChild(h)
 	g.world.addChild(p)
 
 	kmp("quit", g.inbox)
