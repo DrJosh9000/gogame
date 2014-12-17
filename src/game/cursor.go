@@ -6,6 +6,8 @@ import (
 
 var cursorTemplate = &spriteTemplate{
 	sheetFile:   "assets/cursor.png",
+	baseX:       32,
+	baseY:       32,
 	framesX:     2,
 	framesY:     1,
 	frameWidth:  64,
@@ -36,16 +38,13 @@ func (c *cursor) life() {
 		//log.Printf("cursor.inbox got %+v\n", msg)
 		switch m := msg.v.(type) {
 		case *sdl.MouseButtonDownEvent:
-			c.x = m.X - c.template.frameWidth/2
-			c.y = m.Y - c.template.frameHeight/2
+			c.x, c.y = m.X, m.Y
 			c.frame = 1
 		case *sdl.MouseButtonUpEvent:
-			c.x = m.X - c.template.frameWidth/2
-			c.y = m.Y - c.template.frameHeight/2
+			c.x, c.y = m.X, m.Y
 			c.frame = 0
 		case *sdl.MouseMotionEvent:
-			c.x = m.X - c.template.frameWidth/2
-			c.y = m.Y - c.template.frameHeight/2
+			c.x, c.y = m.X, m.Y
 			c.frame = 0
 			if m.ButtonState&sdl.MouseLeftMask != 0 {
 				c.frame = 1

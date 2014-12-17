@@ -5,8 +5,10 @@ import (
 )
 
 type spriteTemplate struct {
-	sheetFile                                 string
-	framesX, framesY, frameWidth, frameHeight int
+	baseX, baseY            int // point within the sprite frame of the "centre"
+	framesX, framesY        int // number of frames along X, Y axes
+	frameWidth, frameHeight int // size of a frame
+	sheetFile               string
 }
 
 func (s *spriteTemplate) new(ctx *sdl.Context) (*sprite, error) {
@@ -35,5 +37,5 @@ func (s *sprite) draw(r *sdl.Renderer) error {
 	srcY := ((s.frame / s.template.framesX) % s.template.framesY) * s.template.frameHeight
 	return r.Copy(s.tex,
 		sdl.Rect{srcX, srcY, s.template.frameWidth, s.template.frameHeight},
-		sdl.Rect{s.x, s.y, s.template.frameWidth, s.template.frameHeight})
+		sdl.Rect{s.x - s.template.baseX, s.y - s.template.baseY, s.template.frameWidth, s.template.frameHeight})
 }

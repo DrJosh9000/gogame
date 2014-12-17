@@ -10,6 +10,8 @@ import (
 
 var playerTemplate = &spriteTemplate{
 	sheetFile:   "assets/spacepsn.png",
+	baseX:       16,
+	baseY:       31,
 	framesX:     4,
 	framesY:     2,
 	frameWidth:  32,
@@ -20,7 +22,7 @@ const (
 	playerUpdateInterval = 10 * time.Millisecond
 
 	playerWalkSpeed = 384 // pixels per second?
-	playerJumpSpeed = -512
+	playerJumpSpeed = -625
 	playerGravity   = 2048
 
 	playerTau = 0.1
@@ -79,7 +81,7 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 	p := &player{
 		sprite: s,
 		fx:     64, // TODO: ohgod fix
-		fy:     768 - 64,
+		fy:     768 - 33,
 		facing: Right,
 		anim:   Standing,
 		inbox:  make(chan message, 10),
@@ -127,7 +129,7 @@ func (p *player) update(t time.Duration) {
 	nx, ny := int(p.fx), int(p.fy)
 	p.lastUpdate = t
 
-	if !gameInstance.level().isPointSolid(nx, ny+32) && !gameInstance.level().isPointSolid(nx+31, ny+32) {
+	if !gameInstance.level().isPointSolid(nx, ny+1) {
 		p.anim = Falling
 		p.ddy = playerGravity
 	} else {
@@ -135,19 +137,19 @@ func (p *player) update(t time.Duration) {
 		if math.Abs(p.wx) > 1.0 {
 			p.anim = Walking
 		}
-		ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
+		ny = ((ny+1)/tileTemplate.frameHeight)*tileTemplate.frameHeight - 1
 		p.fy = float64(ny)
 		p.dy = 0
 		p.ddy = 0
 	}
 
-	if gameInstance.level().isPointSolid(nx, ny+31) {
-		nx = ((nx / tileTemplate.frameWidth) + 1) * tileTemplate.frameWidth
+	if gameInstance.level().isPointSolid(nx-p.template.baseX-1, ny) {
+		nx = (nx/tileTemplate.frameWidth)*tileTemplate.frameWidth + p.template.baseX
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
-	if gameInstance.level().isPointSolid(nx+31, ny+31) {
-		nx = (nx / tileTemplate.frameWidth) * tileTemplate.frameWidth
+	if gameInstance.level().isPointSolid(nx-p.template.baseX+32, ny) {
+		nx = (nx/tileTemplate.frameWidth)*tileTemplate.frameWidth + p.template.baseX
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
@@ -213,8 +215,10 @@ func (p *player) handleMessage(msg message) {
 	case StopWalkRight:
 		p.wx = 0
 	case StartJump:
-		p.dy = playerJumpSpeed
-		p.ddy = playerGravity
+		if gameInstance.level().isPointSolid(p.x, p.y+1) {
+			p.dy = playerJumpSpeed
+			p.ddy = playerGravity
+		}
 	case Land:
 		p.dy = 0
 		p.ddy = 0
