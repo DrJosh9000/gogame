@@ -56,28 +56,30 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		return nil, err
 	}
 
-	p, err := newPlayer(ctx)
-	if err != nil {
-		return nil, err
-	}
+	/*
+		p, err := newPlayer(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-	m0, err := loadLevel(level1AFile)
-	if err != nil {
-		return nil, err
-	}
-	m1, err := loadLevel(level1BFile)
-	if err != nil {
-		return nil, err
-	}
+		m0, err := loadLevel(level1AFile)
+		if err != nil {
+			return nil, err
+		}
+		m1, err := loadLevel(level1BFile)
+		if err != nil {
+			return nil, err
+		}
 
-	t0, err := newTerrain(ctx, m0)
-	if err != nil {
-		return nil, err
-	}
-	t1, err := newTerrain(ctx, m1)
-	if err != nil {
-		return nil, err
-	}
+		t0, err := newTerrain(ctx, m0)
+		if err != nil {
+			return nil, err
+		}
+		t1, err := newTerrain(ctx, m1)
+		if err != nil {
+			return nil, err
+		}
+	*/
 
 	menu, err := newMenu(ctx)
 	if err != nil {
@@ -96,16 +98,16 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		inbox:  make(chan message, 10),
 		cursor: c,
 		menu:   menu,
-		player: p,
-		levels: [2]*level{m0, m1},
+		//player: p,
+		//levels: [2]*level{m0, m1},
 	}
 	gameInstance = g
-	p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
-	g.wv.focus(p.x, p.y)
+	//p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
+	//g.wv.focus(p.x, p.y)
 
-	g.lev.addChild(t0)
-	g.lev.addChild(t1)
-	g.world.addChild(&g.lev)
+	//g.lev.addChild(t0)
+	//g.lev.addChild(t1)
+	//g.world.addChild(&g.lev)
 	for i := 0; i < 4; i++ {
 		h, err := newHex(ctx)
 		if err != nil {
@@ -114,7 +116,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		h.x, h.y = i*96, i*32
 		g.world.addChild(h)
 	}
-	g.world.addChild(p)
+	//g.world.addChild(p)
 
 	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)

@@ -2,6 +2,7 @@ package game
 
 import (
 	"sdl"
+	"sort"
 )
 
 type drawer interface {
@@ -12,25 +13,43 @@ type destroyer interface {
 	destroy()
 }
 
-type complexObject interface {
+type zer interface {
+	// Z returns the Z order index. Lesser numbers are drawn before greater.
+	Z() int
+}
+
+type object interface {
 	drawer
-	addChild(drawer)
-	children() []drawer
+	zer
+}
+
+type objectSlice []object
+
+// The following implement sort.Interface.
+
+func (o objectSlice) Len() int           { return len(o) }
+func (o objectSlice) Less(i, j int) bool { return o[i].Z() < o[j].Z() }
+func (o objectSlice) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
+
+type complexObject interface {
+	object
+	addChild(object)
+	children() objectSlice
 }
 
 // complexBase is a starting point for implementing complexObject.
 type complexBase struct {
-	kids      []drawer
+	kids      []object
 	invisible bool
-	x, y      int
+	x, y, z   int
 }
 
-func (b *complexBase) addChild(c drawer) {
+func (b *complexBase) addChild(c object) {
 	b.kids = append(b.kids, c)
 }
 
-func (b *complexBase) children() []drawer {
-	return b.kids
+func (b *complexBase) children() objectSlice {
+	return objectSlice(b.kids)
 }
 
 func (b *complexBase) draw(r *sdl.Renderer) error {
@@ -39,6 +58,8 @@ func (b *complexBase) draw(r *sdl.Renderer) error {
 	}
 	r.PushOffset(b.x, b.y)
 	defer r.PopOffset()
+	// Do not rely on the z order of children remaining static...
+	sort.Sort(objectSlice(b.kids))
 	for _, c := range b.kids {
 		if c != nil {
 			if err := c.draw(r); err != nil {
@@ -55,6 +76,10 @@ func (b *complexBase) destroy() {
 			d.destroy()
 		}
 	}
+}
+
+func (b *complexBase) Z() int {
+	return b.z
 }
 
 // unionObject is like a complex object, but only one subobject is ever drawn

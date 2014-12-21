@@ -76,6 +76,31 @@ func (r *Renderer) CopyEx(t *Texture, src, dst Rect, angle float64, center Point
 	return nil
 }
 
+func (r *Renderer) DrawPoint(x, y int) error {
+	if errno := C.SDL_RenderDrawPoint(r.r(), C.int(x+r.offset.x), C.int(y+r.offset.y)); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderDrawPoint: %d %s", errno, Err())
+	}
+	return nil
+}
+
+func (r *Renderer) DrawRect(dst Rect) error {
+	dst.X += r.offset.x
+	dst.Y += r.offset.y
+	if errno := C.SDL_RenderDrawRect(r.r(), dst.r()); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderDrawRect: %d %s", errno, Err())
+	}
+	return nil
+}
+
+func (r *Renderer) FillRect(dst Rect) error {
+	dst.X += r.offset.x
+	dst.Y += r.offset.y
+	if errno := C.SDL_RenderFillRect(r.r(), dst.r()); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderFillRect: %d %s", errno, Err())
+	}
+	return nil
+}
+
 func (r *Renderer) PushOffset(x, y int) {
 	r.offsetStack = append(r.offsetStack, offset{x, y})
 	r.offset.x += x

@@ -14,6 +14,8 @@ var hexTemplate = &spriteTemplate{
 
 type hex struct {
 	*sprite
+
+	// TODO: More hex properties here.
 }
 
 func newHex(ctx *sdl.Context) (*hex, error) {

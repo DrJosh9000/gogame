@@ -23,10 +23,10 @@ func (s *spriteTemplate) new(ctx *sdl.Context) (*sprite, error) {
 }
 
 type sprite struct {
-	template    *spriteTemplate
-	x, y, frame int
-	tex         *sdl.Texture
-	invisible   bool
+	template       *spriteTemplate
+	x, y, z, frame int
+	tex            *sdl.Texture
+	invisible      bool
 }
 
 func (s *sprite) draw(r *sdl.Renderer) error {
@@ -38,4 +38,8 @@ func (s *sprite) draw(r *sdl.Renderer) error {
 	return r.Copy(s.tex,
 		sdl.Rect{srcX, srcY, s.template.frameWidth, s.template.frameHeight},
 		sdl.Rect{s.x - s.template.baseX, s.y - s.template.baseY, s.template.frameWidth, s.template.frameHeight})
+}
+
+func (s *sprite) Z() int {
+	return s.z
 }
