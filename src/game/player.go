@@ -1,7 +1,7 @@
 package game
 
 import (
-	"fmt"
+	"log"
 	"math"
 	"time"
 
@@ -10,6 +10,8 @@ import (
 
 var playerTemplate = &spriteTemplate{
 	sheetFile:   "assets/spacepsn.png",
+	baseX:       16,
+	baseY:       31,
 	framesX:     4,
 	framesY:     2,
 	frameWidth:  32,
@@ -20,7 +22,7 @@ const (
 	playerUpdateInterval = 10 * time.Millisecond
 
 	playerWalkSpeed = 384 // pixels per second?
-	playerJumpSpeed = -512
+	playerJumpSpeed = -625
 	playerGravity   = 2048
 
 	playerTau = 0.1
@@ -79,20 +81,17 @@ func newPlayer(ctx *sdl.Context) (*player, error) {
 	p := &player{
 		sprite: s,
 		fx:     64, // TODO: ohgod fix
-		fy:     768 - 64,
+		fy:     768 - 33,
 		facing: Right,
 		anim:   Standing,
 		inbox:  make(chan message, 10),
 	}
 
-	kmp("global", p.inbox)
+	kmp("quit", p.inbox)
+	kmp("clock", p.inbox)
 	kmp("input.event", p.inbox)
 	go p.life()
 	return p, nil
-}
-
-func (p *player) destroy() {
-	fmt.Println("player.destroy")
 }
 
 func (p *player) update(t time.Duration) {
@@ -130,7 +129,7 @@ func (p *player) update(t time.Duration) {
 	nx, ny := int(p.fx), int(p.fy)
 	p.lastUpdate = t
 
-	if !gameInstance.level().isPointSolid(nx, ny+32) && !gameInstance.level().isPointSolid(nx+31, ny+32) {
+	if !gameInstance.level().isPointSolid(nx, ny+1) {
 		p.anim = Falling
 		p.ddy = playerGravity
 	} else {
@@ -138,19 +137,21 @@ func (p *player) update(t time.Duration) {
 		if math.Abs(p.wx) > 1.0 {
 			p.anim = Walking
 		}
-		ny = (ny / tileTemplate.frameHeight) * tileTemplate.frameHeight
+		ny = ((ny+1)/tileTemplate.frameHeight)*tileTemplate.frameHeight - 1
 		p.fy = float64(ny)
 		p.dy = 0
 		p.ddy = 0
 	}
 
-	if gameInstance.level().isPointSolid(nx, ny+31) {
-		nx = ((nx / tileTemplate.frameWidth) + 1) * tileTemplate.frameWidth
+	testX := nx - p.template.baseX - 1
+	if gameInstance.level().isPointSolid(testX, ny) {
+		nx = (floorDiv(testX, tileTemplate.frameWidth)+1)*tileTemplate.frameWidth + p.template.baseX + 1
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
-	if gameInstance.level().isPointSolid(nx+31, ny+31) {
-		nx = (nx / tileTemplate.frameWidth) * tileTemplate.frameWidth
+	testX = nx - p.template.baseX + p.template.frameWidth
+	if gameInstance.level().isPointSolid(testX, ny) {
+		nx = floorDiv(testX, tileTemplate.frameWidth)*tileTemplate.frameWidth - p.template.frameWidth + p.template.baseX
 		p.fx, p.fy = float64(nx), float64(ny)
 		p.dx = 0
 	}
@@ -160,7 +161,7 @@ func (p *player) update(t time.Duration) {
 	notify("player.location", locationMsg{o: p, x: p.x, y: p.y})
 }
 
-func (p *player) handleMessage(msg message) bool {
+func (p *player) handleMessage(msg message) {
 	// TODO: Replace with configurable control map.
 	var ctl playerControl
 	switch v := msg.v.(type) {
@@ -169,43 +170,39 @@ func (p *player) handleMessage(msg message) bool {
 		case ' ':
 			ctl = StartJump
 		case 'w':
-			fmt.Println("w down")
-			return false
+			log.Print("w down")
+			return
 		case 'a':
 			ctl = StartWalkLeft
 		case 's':
-			fmt.Println("s down")
-			return false
+			log.Print("s down")
+			return
 		case 'd':
 			ctl = StartWalkRight
 		default:
-			return false
+			return
 		}
 	case *sdl.KeyUpEvent:
 		switch v.KeyCode {
 		case ' ':
 			ctl = StopJump
 		case 'w':
-			fmt.Println("w up")
-			return false
+			log.Print("w up")
+			return
 		case 'a':
 			ctl = StopWalkLeft
 		case 's':
-			fmt.Println("s up")
-			return false
+			log.Print("s up")
+			return
 		case 'd':
 			ctl = StopWalkRight
 		case 'e':
 			ctl = Teleport
 		default:
-			return false
-		}
-	case basicMsg:
-		if v == quitMsg {
-			return true
+			return
 		}
 	default:
-		return false
+		return
 	}
 
 	switch ctl {
@@ -220,8 +217,10 @@ func (p *player) handleMessage(msg message) bool {
 	case StopWalkRight:
 		p.wx = 0
 	case StartJump:
-		p.dy = playerJumpSpeed
-		p.ddy = playerGravity
+		if gameInstance.level().isPointSolid(p.x, p.y+1) {
+			p.dy = playerJumpSpeed
+			p.ddy = playerGravity
+		}
 	case Land:
 		p.dy = 0
 		p.ddy = 0
@@ -230,27 +229,20 @@ func (p *player) handleMessage(msg message) bool {
 	default:
 		// TODO: more actions
 	}
-	return false
+	return
 }
 
 func (p *player) life() {
-	updater := time.NewTicker(playerUpdateInterval)
-	defer func() {
-		updater.Stop()
-		close(p.inbox)
-		fmt.Println("player.end of life")
-	}()
-	t0 := time.Now()
-	for {
-		select {
-		case c := <-p.inbox:
-			//fmt.Printf("player.inbox got %+v\n", c)
-			if p.handleMessage(c) {
-				return
-			}
-		case t := <-updater.C:
-			//fmt.Printf("player.updater got %+v\n", t)
-			p.update(t.Sub(t0))
+	defer log.Print("player.end of life")
+	for msg := range p.inbox {
+		//fmt.Printf("player.inbox got %+v\n", msg)
+		switch msg.k {
+		case "quit":
+			return
+		case "clock":
+			p.update(msg.v.(time.Duration))
+		default:
+			p.handleMessage(msg)
 		}
 	}
 }

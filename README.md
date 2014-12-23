@@ -1,6 +1,3 @@
-# "Press E to Teleport" #
-(working title)
+# "Gate Simulator" #
 
-Entry (maybe) into Ludum Dare 30.
- 
-
+WIP

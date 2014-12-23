@@ -44,8 +44,45 @@ func NewSurface(s *C.SDL_Surface) *Surface {
 	return r
 }
 
+func CreateSurface(w, h, bitDepth, rMask, gMask, bMask, aMask uint32) (*Surface, error) {
+	surf := C.SDL_CreateRGBSurface(0, C.int(w), C.int(h), C.int(bitDepth), C.Uint32(rMask), C.Uint32(gMask), C.Uint32(bMask), C.Uint32(aMask))
+	if surf == nil {
+		return nil, Err()
+	}
+	return NewSurface(surf), nil
+}
+
+func CreateRGBASurface(w, h int) (*Surface, error) {
+	surf := C.SDL_CreateRGBSurface(0, C.int(w), C.int(h), 32, 0xff000000, 0xff0000, 0xff00, 0xff)
+	if surf == nil {
+		return nil, Err()
+	}
+	return NewSurface(surf), nil
+}
+
+func (s *Surface) BlitOnto(dest *Surface, srcRect, dstRect *Rect) error {
+	if errno := C.SDL_BlitSurface(s.s(), srcRect.r(), dest.s(), dstRect.r()); errno != 0 {
+		return Err()
+	}
+	return nil
+}
+
+func (s *Surface) Fill(fill Colour) error {
+	if errno := C.SDL_FillRect(s.s(), nil, fill.MapRGBA(s.s())); errno != 0 {
+		return Err()
+	}
+	return nil
+}
+
 func (s *Surface) Size() (w, h int) {
 	return int(s.s().w), int(s.s().h)
+}
+
+func (s *Surface) SetBlendMode(b BlendMode) error {
+	if errno := C.SDL_SetSurfaceBlendMode(s.s(), C.SDL_BlendMode(b)); errno != 0 {
+		return Err()
+	}
+	return nil
 }
 
 type Alignment int
@@ -56,7 +93,8 @@ const (
 	RightAlign
 )
 
-func Stack(surfs []*Surface, fill Colour, al Alignment) (*Surface, error) {
+// StackSize computes the combined size of a slice of surfaces.
+func StackSize(surfs []*Surface) (width, height int) {
 	sumH, maxW := 0, 0
 	for _, s := range surfs {
 		w, h := s.Size()
@@ -65,30 +103,25 @@ func Stack(surfs []*Surface, fill Colour, al Alignment) (*Surface, error) {
 		}
 		sumH += h
 	}
+	return maxW, sumH
+}
 
-	surf := C.SDL_CreateRGBSurface(0, C.int(maxW), C.int(sumH), 32, 0, 0, 0, 0)
-	if surf == nil {
-		return nil, Err()
-	}
-
-	if errno := C.SDL_FillRect(surf, nil, fill.MapRGBA(surf)); errno != 0 {
-		return nil, Err()
-	}
-
-	dstRect := Rect{}
+// Stack blits a slice of surfaces in a vertical arrangement.
+func Stack(dest *Surface, surfs []*Surface, x, y, maxW int, al Alignment) error {
+	dstRect := Rect{X: x, Y: y}
 	for _, s := range surfs {
 		w, h := s.Size()
 		dstRect.W = w
 		switch al {
 		case CentreAlign:
-			dstRect.X = (maxW - w) / 2
+			dstRect.X = x + (maxW-w)/2
 		case RightAlign:
-			dstRect.X = maxW - w
+			dstRect.X = x + maxW - w
 		}
-		if errno := C.SDL_BlitSurface(s.s(), nil, surf, dstRect.r()); errno != 0 {
-			return nil, Err()
+		if err := s.BlitOnto(dest, nil, &dstRect); err != nil {
+			return err
 		}
 		dstRect.Y += h
 	}
-	return NewSurface(surf), nil
+	return nil
 }

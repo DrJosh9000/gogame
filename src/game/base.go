@@ -2,38 +2,64 @@ package game
 
 import (
 	"sdl"
+	"sort"
 )
 
-type renderer interface {
-	Copy(t *sdl.Texture, src, dst sdl.Rect) error
-	CopyEx(t *sdl.Texture, src, dst sdl.Rect, angle float64, center sdl.Point, flip sdl.RendererFlip) error
+type drawer interface {
+	draw(*sdl.Renderer) error
+}
+
+type destroyer interface {
+	destroy()
+}
+
+type zer interface {
+	// Z returns the Z order index. Lesser numbers are drawn before greater.
+	Z() int
 }
 
 type object interface {
-	destroy()
-	draw(renderer) error
+	drawer
+	zer
 }
+
+type objectSlice []object
+
+// The following implement sort.Interface.
+
+func (o objectSlice) Len() int           { return len(o) }
+func (o objectSlice) Less(i, j int) bool { return o[i].Z() < o[j].Z() }
+func (o objectSlice) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
 
 type complexObject interface {
 	object
 	addChild(object)
-	children() []object
+	children() objectSlice
 }
 
 // complexBase is a starting point for implementing complexObject.
 type complexBase struct {
-	kids []object
+	kids      []object
+	invisible bool
+	x, y, z   int
 }
 
 func (b *complexBase) addChild(c object) {
 	b.kids = append(b.kids, c)
 }
 
-func (b *complexBase) children() []object {
-	return b.kids
+func (b *complexBase) children() objectSlice {
+	return objectSlice(b.kids)
 }
 
-func (b *complexBase) draw(r renderer) error {
+func (b *complexBase) draw(r *sdl.Renderer) error {
+	if b.invisible {
+		return nil
+	}
+	r.PushOffset(b.x, b.y)
+	defer r.PopOffset()
+	// Do not rely on the z order of children remaining static...
+	sort.Sort(objectSlice(b.kids))
 	for _, c := range b.kids {
 		if c != nil {
 			if err := c.draw(r); err != nil {
@@ -46,10 +72,14 @@ func (b *complexBase) draw(r renderer) error {
 
 func (b *complexBase) destroy() {
 	for _, c := range b.kids {
-		if c != nil {
-			c.destroy()
+		if d, ok := c.(destroyer); ok {
+			d.destroy()
 		}
 	}
+}
+
+func (b *complexBase) Z() int {
+	return b.z
 }
 
 // unionObject is like a complex object, but only one subobject is ever drawn
@@ -59,6 +89,11 @@ type unionObject struct {
 	active int
 }
 
-func (u *unionObject) draw(r renderer) error {
+func (u *unionObject) draw(r *sdl.Renderer) error {
+	if u.invisible {
+		return nil
+	}
+	r.PushOffset(u.x, u.y)
+	defer r.PopOffset()
 	return u.kids[u.active].draw(r)
 }

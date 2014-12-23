@@ -61,6 +61,9 @@ type Rect struct {
 }
 
 func (r *Rect) r() *C.SDL_Rect {
+	if r == nil {
+		return nil
+	}
 	return &C.SDL_Rect{x: C.int(r.X), y: C.int(r.Y), w: C.int(r.W), h: C.int(r.H)}
 }
 
@@ -96,7 +99,8 @@ func NewContext(title string, width, height int) (*Context, error) {
 		Renderer:       r,
 		TextureManager: NewTextureManager(r),
 	}
-	ctx.Renderer.SetDrawColour(BlackColour)
+	r.SetDrawColour(BlackColour)
+	r.SetDrawBlendMode(BlendModeBlend)
 	return ctx, nil
 }
 

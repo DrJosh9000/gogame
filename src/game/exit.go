@@ -1,9 +1,6 @@
 package game
 
 import (
-	"fmt"
-	"time"
-
 	"sdl"
 )
 
@@ -15,19 +12,10 @@ var exitTemplate = &spriteTemplate{
 	frameHeight: 64,
 }
 
-type exitState int
-
-const (
-	exitStateClosed exitState = iota
-	exitStateOpen
-	exitStateQuit
-)
-
 type exit struct {
 	*sprite
-	exitState
-
-	inbox chan message
+	state, wantState int
+	inbox            chan message
 }
 
 func newExit(ctx *sdl.Context) (*exit, error) {
@@ -39,49 +27,37 @@ func newExit(ctx *sdl.Context) (*exit, error) {
 		sprite: s,
 		inbox:  make(chan message, 10),
 	}
-	kmp("global", e.inbox)
+	kmp("quit", e.inbox)
+	kmp("clock", e.inbox)
 	kmp("player.location", e.inbox)
 	go e.life()
 	return e, nil
 }
 
-func (e *exit) destroy() {
-	fmt.Println("exit.destroy")
-}
-
 func (e *exit) life() {
-	updater := time.NewTicker(100 * time.Millisecond)
-	defer updater.Stop()
-	for {
-		select {
-		case msg := <-e.inbox:
-			//fmt.Printf("exit.inbox got %+v\n", msg)
-			switch m := msg.v.(type) {
-			case basicMsg:
-				if m == quitMsg {
-					return
-				}
-			case locationMsg:
-				if msg.k == "player.location" {
-					// If the player is near the door, open it;
-					// If the player is not near the door, close it.
-					if e.exitState == exitStateClosed &&
-						m.x > e.x-200 && m.x < e.x+200 &&
-						m.y > e.y-200 && m.y < e.y+200 {
-						e.exitState = exitStateOpen
-					}
-					if e.exitState == exitStateOpen && (m.x <= e.x-200 || m.x >= e.x+200 ||
-						m.y <= e.y-200 || m.y >= e.y+200) {
-						e.exitState = exitStateClosed
-					}
-				}
+	for msg := range e.inbox {
+		switch msg.k {
+		case "quit":
+			return
+		case "clock":
+			if e.wantState > e.state {
+				e.state++
 			}
-		case <-updater.C:
-			switch {
-			case e.exitState == exitStateClosed && e.frame > 0:
-				e.frame--
-			case e.exitState == exitStateOpen && e.frame < 3:
-				e.frame++
+			if e.wantState < e.state {
+				e.state--
+			}
+			e.frame = e.state / 10
+		case "player.location":
+			m := msg.v.(locationMsg)
+			// If the player is near the door, open it;
+			// If the player is not near the door, close it.
+			if m.x > e.x-200 && m.x < e.x+200 &&
+				m.y > e.y-200 && m.y < e.y+200 {
+				e.wantState = 30
+			}
+			if m.x <= e.x-200 || m.x >= e.x+200 ||
+				m.y <= e.y-200 || m.y >= e.y+200 {
+				e.wantState = 0
 			}
 		}
 	}

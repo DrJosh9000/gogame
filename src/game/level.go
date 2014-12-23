@@ -146,9 +146,19 @@ func loadLevel(name string) (*level, error) {
 	return l, nil
 }
 
+func floorDiv(n, d int) int {
+	if n < 0 {
+		return (n+1)/d - 1
+	}
+	return n / d
+}
+
 func (l levelLayer) queryPoint(x, y int) tileProps {
+	if x < 0 || y < 0 {
+		return outOfBounds
+	}
 	tx, ty := x/tileTemplate.frameWidth, y/tileTemplate.frameHeight
-	if ty < 0 || ty >= len(l) || tx < 0 || tx >= len(l[ty]) {
+	if ty >= len(l) || tx >= len(l[ty]) {
 		return outOfBounds
 	}
 	return l[ty][tx]

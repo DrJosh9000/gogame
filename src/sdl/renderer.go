@@ -33,8 +33,14 @@ const (
 	FlipVertical   RendererFlip = C.kFlipVertical
 )
 
+type offset struct {
+	x, y int
+}
+
 type Renderer struct {
-	renderer unsafe.Pointer
+	renderer    unsafe.Pointer
+	offsetStack []offset
+	offset      offset
 }
 
 func (r *Renderer) r() *C.SDL_Renderer {
@@ -53,6 +59,8 @@ func (r *Renderer) Present() {
 }
 
 func (r *Renderer) Copy(t *Texture, src, dst Rect) error {
+	dst.X += r.offset.x
+	dst.Y += r.offset.y
 	if errno := C.SDL_RenderCopy(r.r(), t.t(), src.r(), dst.r()); errno != 0 {
 		return fmt.Errorf("error in SDL_RenderCopy: %d %s", errno, Err())
 	}
@@ -60,10 +68,58 @@ func (r *Renderer) Copy(t *Texture, src, dst Rect) error {
 }
 
 func (r *Renderer) CopyEx(t *Texture, src, dst Rect, angle float64, center Point, flip RendererFlip) error {
+	dst.X += r.offset.x
+	dst.Y += r.offset.y
 	if errno := C.SDL_RenderCopyEx(r.r(), t.t(), src.r(), dst.r(), C.double(angle), center.p(), C.SDL_RendererFlip(flip)); errno != 0 {
 		return fmt.Errorf("error in SDL_RenderCopyEx: %d %s", errno, Err())
 	}
 	return nil
+}
+
+func (r *Renderer) DrawPoint(x, y int) error {
+	if errno := C.SDL_RenderDrawPoint(r.r(), C.int(x+r.offset.x), C.int(y+r.offset.y)); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderDrawPoint: %d %s", errno, Err())
+	}
+	return nil
+}
+
+func (r *Renderer) DrawRect(dst Rect) error {
+	dst.X += r.offset.x
+	dst.Y += r.offset.y
+	if errno := C.SDL_RenderDrawRect(r.r(), dst.r()); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderDrawRect: %d %s", errno, Err())
+	}
+	return nil
+}
+
+func (r *Renderer) FillRect(dst Rect) error {
+	dst.X += r.offset.x
+	dst.Y += r.offset.y
+	if errno := C.SDL_RenderFillRect(r.r(), dst.r()); errno != 0 {
+		return fmt.Errorf("error in SDL_RenderFillRect: %d %s", errno, Err())
+	}
+	return nil
+}
+
+func (r *Renderer) PushOffset(x, y int) {
+	r.offsetStack = append(r.offsetStack, offset{x, y})
+	r.offset.x += x
+	r.offset.y += y
+}
+
+func (r *Renderer) PopOffset() {
+	if len(r.offsetStack) == 0 {
+		return
+	}
+	l := len(r.offsetStack) - 1
+	r.offset.x -= r.offsetStack[l].x
+	r.offset.y -= r.offsetStack[l].y
+	r.offsetStack = r.offsetStack[:l]
+}
+
+func (r *Renderer) ResetOffset() {
+	r.offsetStack = nil
+	r.offset = offset{}
 }
 
 func (r *Renderer) Destroy() {
@@ -71,6 +127,13 @@ func (r *Renderer) Destroy() {
 		C.SDL_DestroyRenderer(r.r())
 	}
 	r.renderer = nil
+}
+
+func (r *Renderer) SetDrawBlendMode(b BlendMode) error {
+	if errno := C.SDL_SetRenderDrawBlendMode(r.r(), C.SDL_BlendMode(b)); errno != 0 {
+		return Err()
+	}
+	return nil
 }
 
 func (r *Renderer) SetDrawColour(c Colour) {
