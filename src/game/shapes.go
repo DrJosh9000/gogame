@@ -79,20 +79,20 @@ type ellipse struct {
 
 func (e *ellipse) draw(r *sdl.Renderer) error {
 	r.SetDrawColour(e.colour)
-	rx := float64(e.w)
-	x, y, step := e.w, 0.0
+	rx := float64(e.w / 2)
+	x, y, step := e.w/2, 0, 0.0
 	fr := float64(e.w*e.w) / float64(e.h*e.h)
 	for step <= 1.0 {
-		if err := r.DrawFatPoint(e.x+x, e.y+y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x+x*2, e.y+y*2, 2); err != nil {
 			return err
 		}
-		if err := r.DrawFatPoint(e.x-x, e.y+y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x-x*2, e.y+y*2, 2); err != nil {
 			return err
 		}
-		if err := r.DrawFatPoint(e.x+x, e.y-y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x+x*2, e.y-y*2, 2); err != nil {
 			return err
 		}
-		if err := r.DrawFatPoint(e.x-x, e.y-y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x-x*2, e.y-y*2, 2); err != nil {
 			return err
 		}
 		y++
@@ -100,19 +100,19 @@ func (e *ellipse) draw(r *sdl.Renderer) error {
 		rx -= step
 		x = int(rx + 0.5)
 	}
-	ry := float64(e.h)
-	x, y, step = 0, e.h, 0.0
+	ry := float64(e.h / 2)
+	x, y, step = 0, e.h/2, 0.0
 	for step <= 1.0 {
-		if err := r.DrawFatPoint(e.x+x, e.y+y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x+x*2, e.y+y*2, 2); err != nil {
 			return err
 		}
-		if err := r.DrawFatPoint(e.x-x, e.y+y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x-x*2, e.y+y*2, 2); err != nil {
 			return err
 		}
-		if err := r.DrawFatPoint(e.x+x, e.y-y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x+x*2, e.y-y*2, 2); err != nil {
 			return err
 		}
-		if err := r.DrawFatPoint(e.x-x, e.y-y, 2); err != nil {
+		if err := r.DrawFatPoint(e.x-x*2, e.y-y*2, 2); err != nil {
 			return err
 		}
 		x++
