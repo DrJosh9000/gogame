@@ -28,20 +28,20 @@ func Err() error {
 }
 
 type Colour struct {
-	Red, Green, Blue, Alpha uint8
+	R, G, B, A uint8
 }
 
 func (c *Colour) c() C.SDL_Color {
 	return C.SDL_Color{
-		r: C.Uint8(c.Red),
-		g: C.Uint8(c.Green),
-		b: C.Uint8(c.Blue),
-		a: C.Uint8(c.Alpha),
+		r: C.Uint8(c.R),
+		g: C.Uint8(c.G),
+		b: C.Uint8(c.B),
+		a: C.Uint8(c.A),
 	}
 }
 
 func (c *Colour) MapRGBA(s *C.SDL_Surface) C.Uint32 {
-	return C.SDL_MapRGBA(s.format, C.Uint8(c.Red), C.Uint8(c.Green), C.Uint8(c.Blue), C.Uint8(c.Alpha))
+	return C.SDL_MapRGBA(s.format, C.Uint8(c.R), C.Uint8(c.G), C.Uint8(c.B), C.Uint8(c.A))
 }
 
 var TransparentColour = Colour{0x00, 0x00, 0x00, 0x00}

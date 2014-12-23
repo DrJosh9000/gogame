@@ -83,6 +83,10 @@ func (r *Renderer) DrawPoint(x, y int) error {
 	return nil
 }
 
+func (r *Renderer) DrawFatPoint(x, y, w int) error {
+	return r.FillRect(Rect{X: x, Y: y, W: w, H: w})
+}
+
 func (r *Renderer) DrawRect(dst Rect) error {
 	dst.X += r.offset.x
 	dst.Y += r.offset.y
@@ -137,7 +141,7 @@ func (r *Renderer) SetDrawBlendMode(b BlendMode) error {
 }
 
 func (r *Renderer) SetDrawColour(c Colour) {
-	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.Red), C.Uint8(c.Green), C.Uint8(c.Blue), C.Uint8(c.Alpha))
+	C.SDL_SetRenderDrawColor(r.r(), C.Uint8(c.R), C.Uint8(c.G), C.Uint8(c.B), C.Uint8(c.A))
 }
 
 func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {

@@ -40,6 +40,7 @@ func main() {
 		if err := sdl.HandleEvents(g.HandleEvent); err != nil {
 			panic(err)
 		}
+		r.SetDrawColour(sdl.BlackColour)
 		if err := r.Clear(); err != nil {
 			panic(err)
 		}

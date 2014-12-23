@@ -116,6 +116,23 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		h.x, h.y = i*96, i*32
 		g.world.addChild(h)
 	}
+
+	g.world.addChild(&circle{
+		x:      300,
+		y:      600,
+		r:      200,
+		colour: sdl.Colour{R: 0xFF, G: 0x00, B: 0x00, A: 0xFF},
+		z:      2,
+	})
+
+	g.world.addChild(&ellipse{
+		x:      300,
+		y:      600,
+		w:      100,
+		h:      170,
+		colour: sdl.Colour{R: 0xFF, G: 0x00, B: 0x00, A: 0xFF},
+		z:      2,
+	})
 	//g.world.addChild(p)
 
 	kmp("quit", g.inbox)
