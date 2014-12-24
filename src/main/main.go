@@ -35,7 +35,6 @@ func main() {
 	defer g.Destroy()
 
 	go console(g)
-
 	for !g.Quitting() {
 		if err := sdl.HandleEvents(g.HandleEvent); err != nil {
 			panic(err)
@@ -52,6 +51,7 @@ func main() {
 	}
 }
 
+// console processes text entered on the tty.
 func console(g *game.Game) {
 	fmt.Printf("> ")
 	in := bufio.NewScanner(os.Stdin)

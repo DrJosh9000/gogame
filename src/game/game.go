@@ -3,6 +3,7 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -71,14 +72,17 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	}
 	gameInstance = g
 
-	// Test hexagons:
-	for i := 0; i < 4; i++ {
-		h, err := newHex(ctx)
-		if err != nil {
-			return nil, err
+	// Test hexagons...
+	for i := 0; i < 25; i++ {
+		for j := 0; j < 8; j++ {
+			h, err := newHex(ctx)
+			if err != nil {
+				return nil, err
+			}
+			y := 32 * (i - 1)
+			h.x, h.y, h.z = 192*j+96*(i%2)-32, y-rand.Intn(5)*2, y
+			g.world.addChild(h)
 		}
-		h.x, h.y = i*96, i*32
-		g.world.addChild(h)
 	}
 
 	kmp("quit", g.inbox)
