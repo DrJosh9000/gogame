@@ -4,6 +4,8 @@ import (
 	"sdl"
 )
 
+const sqrt3 = 1.73205080757
+
 type rect struct {
 	bounds sdl.Rect
 	colour sdl.Colour
@@ -116,7 +118,7 @@ func (e *ellipse) draw(r *sdl.Renderer) error {
 			return err
 		}
 		x++
-		step = float64(x) / ry / fr
+		step = float64(x) / (ry * fr)
 		ry -= step
 		y = int(ry + 0.5)
 	}
