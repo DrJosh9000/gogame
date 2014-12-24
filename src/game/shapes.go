@@ -120,7 +120,6 @@ func (e *ellipse) draw(r *sdl.Renderer) error {
 		ry -= step
 		y = int(ry + 0.5)
 	}
-
 	return nil
 }
 
