@@ -2,7 +2,8 @@
 package game
 
 import (
-	"log"
+	"fmt"
+	"strings"
 	"time"
 
 	"sdl"
@@ -36,14 +37,8 @@ type Game struct {
 	wv         *worldView
 	world, hud complexBase
 
-	// Special game objects.
-	// TODO: OHDOG
 	cursor *cursor
 	menu   *menu
-	player *player
-	exit   *exit
-	lev    unionObject
-	levels [2]*level
 }
 
 func NewGame(ctx *sdl.Context) (*Game, error) {
@@ -55,31 +50,6 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	/*
-		p, err := newPlayer(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		m0, err := loadLevel(level1AFile)
-		if err != nil {
-			return nil, err
-		}
-		m1, err := loadLevel(level1BFile)
-		if err != nil {
-			return nil, err
-		}
-
-		t0, err := newTerrain(ctx, m0)
-		if err != nil {
-			return nil, err
-		}
-		t1, err := newTerrain(ctx, m1)
-		if err != nil {
-			return nil, err
-		}
-	*/
 
 	menu, err := newMenu(ctx)
 	if err != nil {
@@ -98,16 +68,10 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		inbox:  make(chan message, 10),
 		cursor: c,
 		menu:   menu,
-		//player: p,
-		//levels: [2]*level{m0, m1},
 	}
 	gameInstance = g
-	//p.x, p.y = tileTemplate.frameWidth*m0.startX, tileTemplate.frameHeight*m0.startY
-	//g.wv.focus(p.x, p.y)
 
-	//g.lev.addChild(t0)
-	//g.lev.addChild(t1)
-	//g.world.addChild(&g.lev)
+	// Test hexagons:
 	for i := 0; i < 4; i++ {
 		h, err := newHex(ctx)
 		if err != nil {
@@ -116,33 +80,6 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		h.x, h.y = i*96, i*32
 		g.world.addChild(h)
 	}
-
-	g.world.addChild(&circle{
-		x:      300,
-		y:      600,
-		r:      200,
-		colour: sdl.Colour{R: 0xFF, G: 0x00, B: 0x00, A: 0xFF},
-		z:      2,
-	})
-
-	g.world.addChild(&ellipse{
-		x:      300,
-		y:      600,
-		w:      100,
-		h:      173,
-		colour: sdl.Colour{R: 0x00, G: 0xFF, B: 0x00, A: 0xFF},
-		z:      2,
-	})
-
-	g.world.addChild(&ellipse{
-		x:      300,
-		y:      600,
-		w:      173,
-		h:      100,
-		colour: sdl.Colour{R: 0x00, G: 0x00, B: 0xFF, A: 0xFF},
-		z:      2,
-	})
-	//g.world.addChild(p)
 
 	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)
@@ -184,7 +121,7 @@ func (g *Game) life() {
 				quit()
 			case 'e':
 				// Do teleport
-				g.lev.active = (g.lev.active + 1) % 2
+				//g.lev.active = (g.lev.active + 1) % 2
 			}
 		}
 	}
@@ -225,10 +162,29 @@ func (g *Game) Draw() error {
 }
 
 func (g *Game) Destroy() {
-	log.Print("game.destroy")
+	//log.Print("game.destroy")
 	g.clock.Stop()
 	g.world.destroy()
 	g.hud.destroy()
+}
+
+func (g *Game) Exec(cmd string) {
+	//log.Printf("game.Exec(%q)\n", cmd)
+	argv := strings.Split(cmd, " ")
+	switch argv[0] {
+	case "quit":
+		quit()
+	case "help":
+		if len(argv) == 1 {
+			fmt.Println("help: Usage: help <command>")
+		} else {
+			fmt.Println("help: Not yet implemented")
+		}
+	case "":
+		return
+	default:
+		fmt.Println("Bad command or file name")
+	}
 }
 
 func (g *Game) Quitting() bool {
@@ -236,7 +192,8 @@ func (g *Game) Quitting() bool {
 }
 
 func (g *Game) level() *level {
-	return g.levels[g.lev.active]
+	//return g.levels[g.lev.active]
+	return nil
 }
 
 func (g *Game) HandleEvent(ev sdl.Event) error {

@@ -3,7 +3,9 @@
 package main
 
 import (
-	"errors"
+	"bufio"
+	"fmt"
+	"os"
 	"runtime"
 
 	"game"
@@ -12,11 +14,7 @@ import (
 
 const (
 	defaultWidth, defaultHeight = 1024, 768
-	gameName                    = "Press E to Teleport"
-)
-
-var (
-	quitting = errors.New("quitting")
+	gameName                    = "Gate Simulator"
 )
 
 func main() {
@@ -36,6 +34,8 @@ func main() {
 	}
 	defer g.Destroy()
 
+	go console(g)
+
 	for !g.Quitting() {
 		if err := sdl.HandleEvents(g.HandleEvent); err != nil {
 			panic(err)
@@ -49,5 +49,17 @@ func main() {
 		}
 		r.Present()
 		sdl.Delay(1)
+	}
+}
+
+func console(g *game.Game) {
+	fmt.Printf("> ")
+	in := bufio.NewScanner(os.Stdin)
+	for in.Scan() {
+		g.Exec(in.Text())
+		fmt.Printf("> ")
+	}
+	if err := in.Err(); err != nil {
+		panic(err)
 	}
 }
