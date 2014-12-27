@@ -1,5 +1,9 @@
 package game
 
+import (
+	"sync"
+)
+
 // message is the basic type for notification messages,
 // incorporating the message value and the key it was sent under.
 type message struct {
@@ -7,13 +11,18 @@ type message struct {
 	v interface{}
 }
 
-// notes keeps track of all registered channels.
-var notes = make(map[string][](chan message))
+var (
+	// notes keeps track of all registered channels.
+	notes   = make(map[string][](chan message))
+	notesMu sync.Mutex
+)
 
 // kmp stands for "keep me posted", and registers a callback channel
 // for messages sent to a given key.
 func kmp(key string, ch chan message) {
+	notesMu.Lock()
 	notes[key] = append(notes[key], ch)
+	notesMu.Unlock()
 }
 
 // notify sends a message to every channel registered for a key.

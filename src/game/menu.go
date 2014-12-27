@@ -2,7 +2,6 @@ package game
 
 import (
 	"log"
-	"sdl"
 )
 
 type menuItem struct {
@@ -43,20 +42,21 @@ type menu struct {
 	complexBase
 }
 
-func newMenu(ctx *sdl.Context) (*menu, error) {
+func newMenu() (*menu, error) {
 	m := &menu{
 		complexBase: complexBase{
-			x: (1024 - buttonTemplate.frameWidth) / 2,
-			y: 200,
+			// TODO: Less magic numbers.
+			X: (1024 - 256) / 2,
+			Y: 200,
 		},
 	}
 	y := 0
 	for _, mi := range menus {
-		b, err := newButton(ctx, m, buttonTemplate, mi.text, mi.action)
+		b, err := newButton(m, "button", mi.text, mi.action)
 		if err != nil {
 			return nil, err
 		}
-		b.y = y
+		b.Y = y
 		y += 96
 		m.addChild(b)
 	}

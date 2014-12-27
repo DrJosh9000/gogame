@@ -14,8 +14,8 @@ type destroyer interface {
 }
 
 type zer interface {
-	// Z returns the Z order index. Lesser numbers are drawn before greater.
-	Z() int
+	// z returns the Z order index. Lesser numbers are drawn before greater.
+	z() int
 }
 
 type object interface {
@@ -28,39 +28,33 @@ type objectSlice []object
 // The following implement sort.Interface.
 
 func (o objectSlice) Len() int           { return len(o) }
-func (o objectSlice) Less(i, j int) bool { return o[i].Z() < o[j].Z() }
+func (o objectSlice) Less(i, j int) bool { return o[i].z() < o[j].z() }
 func (o objectSlice) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
-
-type complexObject interface {
-	object
-	addChild(object)
-	children() objectSlice
-}
 
 // complexBase is a starting point for implementing complexObject.
 type complexBase struct {
-	kids      []object
-	invisible bool
-	x, y, z   int
+	Kids      []object
+	Invisible bool
+	X, Y, Z   int
 }
 
 func (b *complexBase) addChild(c object) {
-	b.kids = append(b.kids, c)
+	b.Kids = append(b.Kids, c)
 }
 
 func (b *complexBase) children() objectSlice {
-	return objectSlice(b.kids)
+	return objectSlice(b.Kids)
 }
 
 func (b *complexBase) draw(r *sdl.Renderer) error {
-	if b.invisible {
+	if b.Invisible {
 		return nil
 	}
-	r.PushOffset(b.x, b.y)
+	r.PushOffset(b.X, b.Y)
 	defer r.PopOffset()
 	// Do not rely on the z order of children remaining static...
-	sort.Sort(objectSlice(b.kids))
-	for _, c := range b.kids {
+	sort.Sort(objectSlice(b.Kids))
+	for _, c := range b.Kids {
 		if c != nil {
 			if err := c.draw(r); err != nil {
 				return err
@@ -71,29 +65,29 @@ func (b *complexBase) draw(r *sdl.Renderer) error {
 }
 
 func (b *complexBase) destroy() {
-	for _, c := range b.kids {
+	for _, c := range b.Kids {
 		if d, ok := c.(destroyer); ok {
 			d.destroy()
 		}
 	}
 }
 
-func (b *complexBase) Z() int {
-	return b.z
+func (b *complexBase) z() int {
+	return b.Z
 }
 
 // unionObject is like a complex object, but only one subobject is ever drawn
 // (kind of like a C union - only one element is useful at a time).
 type unionObject struct {
 	complexBase
-	active int
+	Active int
 }
 
 func (u *unionObject) draw(r *sdl.Renderer) error {
-	if u.invisible {
+	if u.Invisible {
 		return nil
 	}
-	r.PushOffset(u.x, u.y)
+	r.PushOffset(u.X, u.Y)
 	defer r.PopOffset()
-	return u.kids[u.active].draw(r)
+	return u.Kids[u.Active].draw(r)
 }

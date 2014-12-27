@@ -23,23 +23,38 @@ func (s *spriteTemplate) new(ctx *sdl.Context) (*sprite, error) {
 }
 
 type sprite struct {
-	template       *spriteTemplate
-	x, y, z, frame int
-	tex            *sdl.Texture
-	invisible      bool
+	Invisible      bool
+	TemplateKey    string
+	X, Y, Z, Frame int
+
+	template *spriteTemplate
+	tex      *sdl.Texture
 }
 
 func (s *sprite) draw(r *sdl.Renderer) error {
-	if s.invisible {
+	if s.Invisible {
 		return nil
 	}
-	srcX := (s.frame % s.template.framesX) * s.template.frameWidth
-	srcY := ((s.frame / s.template.framesX) % s.template.framesY) * s.template.frameHeight
+	// Ensure the template & texture are loaded.
+	if s.template == nil {
+		s.template = templateLibrary[s.TemplateKey]
+	}
+	if s.tex == nil {
+		tex, err := ctx().GetTexture(s.template.sheetFile)
+		if err != nil {
+			return err
+		}
+		s.tex = tex
+	}
+
+	// Compute the frame bounds and draw.
+	srcX := (s.Frame % s.template.framesX) * s.template.frameWidth
+	srcY := ((s.Frame / s.template.framesX) % s.template.framesY) * s.template.frameHeight
 	return r.Copy(s.tex,
 		sdl.Rect{srcX, srcY, s.template.frameWidth, s.template.frameHeight},
-		sdl.Rect{s.x - s.template.baseX, s.y - s.template.baseY, s.template.frameWidth, s.template.frameHeight})
+		sdl.Rect{s.X - s.template.baseX, s.Y + s.Z - s.template.baseY, s.template.frameWidth, s.template.frameHeight})
 }
 
-func (s *sprite) Z() int {
-	return s.z
+func (s *sprite) z() int {
+	return s.Z
 }

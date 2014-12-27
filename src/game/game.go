@@ -38,23 +38,17 @@ type Game struct {
 	wv         *worldView
 	world, hud complexBase
 
-	cursor *cursor
+	cursor *sprite
 	menu   *menu
+}
+
+func ctx() *sdl.Context {
+	return gameInstance.ctx
 }
 
 func NewGame(ctx *sdl.Context) (*Game, error) {
 	if gameInstance != nil {
 		return gameInstance, nil
-	}
-
-	c, err := newCursor(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	menu, err := newMenu(ctx)
-	if err != nil {
-		return nil, err
 	}
 
 	g := &Game{
@@ -66,24 +60,40 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 			view:  sdl.Rect{0, 0, 1024, 768},
 			world: sdl.Rect{0, 0, 4096, 768}, // TODO: derive from terrain
 		},
-		inbox:  make(chan message, 10),
-		cursor: c,
-		menu:   menu,
+		inbox: make(chan message, 10),
 	}
 	gameInstance = g
+
+	c, err := newCursor()
+	if err != nil {
+		return nil, err
+	}
+	g.cursor = c
+
+	menu, err := newMenu()
+	if err != nil {
+		return nil, err
+	}
+	g.menu = menu
 
 	// Test hexagons...
 	for i := 0; i < 25; i++ {
 		for j := 0; j < 8; j++ {
-			h, err := newHex(ctx)
-			if err != nil {
-				return nil, err
-			}
-			y := 32 * (i - 1)
-			h.x, h.y, h.z = 192*j+96*(i%2)-32, y-rand.Intn(5)*2, y
-			g.world.addChild(h)
+			g.world.addChild(&sprite{
+				TemplateKey: "hex",
+				X:           192*j + 96*(i%2) - 32,
+				Y:           -rand.Intn(5) * 2,
+				Z:           32 * (i - 1),
+			})
 		}
 	}
+
+	orb, err := newOrb(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orb.X, orb.Y, orb.Z = 150, 0, 100
+	g.world.addChild(orb)
 
 	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)
@@ -106,10 +116,10 @@ func (g *Game) life() {
 		case "menuAction":
 			switch msg.v.(string) {
 			case "start":
-				g.menu.invisible = true
+				g.menu.Invisible = true
 				g.state = gameStateRunning
 			case "levelEdit":
-				g.menu.invisible = true
+				g.menu.Invisible = true
 			}
 		}
 		switch m := msg.v.(type) {
@@ -195,10 +205,11 @@ func (g *Game) Quitting() bool {
 	return g.state == gameStateQuitting
 }
 
+/*
 func (g *Game) level() *level {
-	//return g.levels[g.lev.active]
-	return nil
+	return g.levels[g.lev.active]
 }
+*/
 
 func (g *Game) HandleEvent(ev sdl.Event) error {
 	notify("input.event", ev)

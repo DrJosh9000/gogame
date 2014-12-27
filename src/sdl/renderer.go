@@ -84,6 +84,12 @@ func (r *Renderer) DrawPoint(x, y int) error {
 }
 
 func (r *Renderer) DrawFatPoint(x, y, w int) error {
+	if w == 0 {
+		return nil
+	}
+	if w == 1 {
+		return r.DrawPoint(x, y)
+	}
 	return r.FillRect(Rect{X: x, Y: y, W: w, H: w})
 }
 
