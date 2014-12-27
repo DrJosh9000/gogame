@@ -11,6 +11,7 @@ const int kBlendModeMod   = SDL_BLENDMODE_MOD;
 */
 import "C"
 import (
+	"runtime"
 	"unsafe"
 )
 
@@ -31,11 +32,14 @@ func (t *Texture) t() *C.SDL_Texture {
 	return (*C.SDL_Texture)(t.texture)
 }
 
-func (t *Texture) Destroy() {
-	if t.t() != nil {
-		C.SDL_DestroyTexture(t.t())
-	}
-	t.texture = nil
+func NewTexture(t *C.SDL_Texture) *Texture {
+	r := &Texture{unsafe.Pointer(t)}
+	runtime.SetFinalizer(r, func(x interface{}) {
+		tex := x.(*Texture)
+		C.SDL_DestroyTexture(tex.t())
+		tex.texture = nil
+	})
+	return r
 }
 
 func (t *Texture) SetBlendMode(b BlendMode) error {
@@ -67,13 +71,4 @@ func (a *TextureManager) GetTexture(name string) (*Texture, error) {
 	}
 	a.assets[name] = t
 	return t, nil
-}
-
-func (a *TextureManager) Destroy() {
-	if a.assets != nil {
-		for _, x := range a.assets {
-			x.Destroy()
-		}
-	}
-	a.assets = nil
 }

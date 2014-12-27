@@ -155,7 +155,7 @@ func (r *Renderer) TextureFromSurface(s *Surface) (*Texture, error) {
 	if t == nil {
 		return nil, fmt.Errorf("unable to create texture from surface: %s", Err())
 	}
-	return &Texture{unsafe.Pointer(t)}, nil
+	return NewTexture(t), nil
 }
 
 // Convenience function that loads a BMP into a surface,

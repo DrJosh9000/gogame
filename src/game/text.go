@@ -82,12 +82,3 @@ func (t *text) draw(r *sdl.Renderer) error {
 		sdl.Rect{0, 0, t.w, t.h},
 		sdl.Rect{t.x, t.y, t.w, t.h})
 }
-
-func (t *text) destroy() {
-	if t == nil {
-		return
-	}
-	if t.tex != nil {
-		t.tex.Destroy()
-	}
-}

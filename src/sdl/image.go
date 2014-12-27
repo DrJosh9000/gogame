@@ -30,5 +30,5 @@ func LoadImage(file string) (*Surface, error) {
 	if img == nil {
 		return nil, fmt.Errorf("unable to load image at %q: %v", file, ImgErr())
 	}
-	return &Surface{unsafe.Pointer(img)}, nil
+	return NewSurface(img), nil
 }

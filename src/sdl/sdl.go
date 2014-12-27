@@ -105,7 +105,6 @@ func NewContext(title string, width, height int) (*Context, error) {
 }
 
 func (c *Context) Close() {
-	c.TextureManager.Destroy()
 	c.Renderer.Destroy()
 	c.Window.Destroy()
 	C.SDL_Quit()

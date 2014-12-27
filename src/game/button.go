@@ -44,13 +44,6 @@ func (b *button) draw(r *sdl.Renderer) error {
 	return nil
 }
 
-func (b *button) destroy() {
-	if b == nil || b.text == nil {
-		return
-	}
-	b.text.destroy()
-}
-
 // hitTest tests screen coordinates against the button bounds.
 func (b *button) hitTest(x, y int) bool {
 	if b == nil || b.Invisible {
