@@ -19,7 +19,7 @@ type text struct {
 	invisible  bool
 }
 
-func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignment) (*text, error) {
+func newText(s string, draw, shadow sdl.Colour, al sdl.Alignment) (*text, error) {
 	if defaultFont == nil {
 		f, err := sdl.LoadFont(defaultFontFile, defaultFontSize)
 		if err != nil {
@@ -67,7 +67,7 @@ func newText(ctx *sdl.Context, s string, draw, shadow sdl.Colour, al sdl.Alignme
 	if err := sdl.Stack(surf, texts, 0, 0, w, al); err != nil {
 		return nil, err
 	}
-	tex, err := ctx.Renderer.TextureFromSurface(surf)
+	tex, err := ctx().Renderer.TextureFromSurface(surf)
 	if err != nil {
 		return nil, err
 	}

@@ -31,7 +31,6 @@ var menus = []menuItem{
 	{
 		text: "Quit",
 		action: func() error {
-			log.Print("quit button")
 			quit()
 			return nil
 		},
@@ -52,10 +51,13 @@ func newMenu() (*menu, error) {
 	}
 	y := 0
 	for _, mi := range menus {
-		b, err := newButton(m, "button", mi.text, mi.action)
-		if err != nil {
-			return nil, err
+		b := &button{
+			Label:  mi.text,
+			sprite: &sprite{TemplateKey: "button"},
+			action: mi.action,
+			parent: m,
 		}
+		go b.life()
 		b.Y = y
 		y += 96
 		m.addChild(b)

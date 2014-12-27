@@ -60,15 +60,13 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 			view:  sdl.Rect{0, 0, 1024, 768},
 			world: sdl.Rect{0, 0, 4096, 768}, // TODO: derive from terrain
 		},
-		inbox: make(chan message, 10),
+		inbox:  make(chan message, 10),
+		cursor: &sprite{TemplateKey: "cursor"},
 	}
 	gameInstance = g
 
-	c, err := newCursor()
-	if err != nil {
-		return nil, err
-	}
-	g.cursor = c
+	// Attach cursor to events.
+	go cursorLife(g.cursor)
 
 	menu, err := newMenu()
 	if err != nil {

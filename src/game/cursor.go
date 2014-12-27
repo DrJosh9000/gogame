@@ -4,12 +4,6 @@ import (
 	"sdl"
 )
 
-func newCursor() (*sprite, error) {
-	s := &sprite{TemplateKey: "cursor"}
-	go cursorLife(s)
-	return s, nil
-}
-
 func cursorLife(c *sprite) {
 	inbox := make(chan message, 10)
 	kmp("input.event", inbox)

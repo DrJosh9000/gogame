@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"log"
 
 	"sdl"
@@ -10,33 +9,10 @@ import (
 // button is a clickable region on screen with optional text.
 type button struct {
 	*sprite
+	Label  string
 	text   *text
 	action func() error
 	parent *menu
-}
-
-func newButton(parent *menu, template string, label string, action func() error) (*button, error) {
-	b := &button{
-		sprite: &sprite{TemplateKey: template},
-		action: action,
-		parent: parent,
-	}
-	if label != "" {
-		tmpl, ok := templateLibrary[template]
-		if !ok {
-			return nil, fmt.Errorf("no template named %q", template)
-		}
-
-		t, err := newText(ctx(), label, sdl.BlackColour, sdl.TransparentColour, sdl.CentreAlign)
-		if err != nil {
-			return nil, err
-		}
-		t.x = (tmpl.frameWidth - t.w) / 2
-		t.y = (tmpl.frameHeight - t.h) / 2
-		b.text = t
-	}
-	go b.life()
-	return b, nil
 }
 
 func (b *button) draw(r *sdl.Renderer) error {
@@ -53,6 +29,15 @@ func (b *button) draw(r *sdl.Renderer) error {
 		r.PushOffset(0, 8)
 		defer r.PopOffset()
 	}
+	if b.text == nil {
+		t, err := newText(b.Label, sdl.BlackColour, sdl.TransparentColour, sdl.CentreAlign)
+		if err != nil {
+			return err
+		}
+		t.x = (b.template.frameWidth - t.w) / 2
+		t.y = (b.template.frameHeight - t.h) / 2
+		b.text = t
+	}
 	if err := b.text.draw(r); err != nil {
 		return err
 	}
@@ -60,7 +45,7 @@ func (b *button) draw(r *sdl.Renderer) error {
 }
 
 func (b *button) destroy() {
-	if b == nil {
+	if b == nil || b.text == nil {
 		return
 	}
 	b.text.destroy()
@@ -68,8 +53,14 @@ func (b *button) destroy() {
 
 // hitTest tests screen coordinates against the button bounds.
 func (b *button) hitTest(x, y int) bool {
-	return !b.Invisible &&
-		!b.parent.Invisible &&
+	if b == nil || b.Invisible {
+		return false
+	}
+	if b.parent == nil {
+		return x >= b.X && x <= b.X+b.template.frameWidth &&
+			y >= b.Y && y <= b.Y+b.template.frameHeight
+	}
+	return !b.parent.Invisible &&
 		x >= b.X+b.parent.X &&
 		x <= b.X+b.parent.X+b.template.frameWidth &&
 		y >= b.Y+b.parent.Y &&
