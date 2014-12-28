@@ -4,28 +4,6 @@ import (
 	"sdl"
 )
 
-var (
-	orbTemplate = &spriteTemplate{
-		sheetFile:   "assets/orb.png",
-		baseX:       15,
-		baseY:       31,
-		framesX:     1,
-		framesY:     1,
-		frameWidth:  32,
-		frameHeight: 32,
-	}
-
-	orbShadowTemplate = &spriteTemplate{
-		sheetFile:   "assets/orbshadow.png",
-		baseX:       0,
-		baseY:       12,
-		framesX:     1,
-		framesY:     1,
-		frameWidth:  32,
-		frameHeight: 32,
-	}
-)
-
 type orb struct {
 	X, Y, Z             int
 	orb, shadow         *sprite
@@ -33,31 +11,27 @@ type orb struct {
 	Selected, Invisible bool
 }
 
-func newOrb(ctx *sdl.Context) (*orb, error) {
-	o, err := orbTemplate.new(ctx)
-	if err != nil {
-		return nil, err
+func (o *orb) load() {
+	if o.orb == nil {
+		o.orb = &sprite{TemplateKey: "orb"}
 	}
-	shad, err := orbShadowTemplate.new(ctx)
-	if err != nil {
-		return nil, err
+	if o.shadow == nil {
+		o.shadow = &sprite{TemplateKey: "orbShadow"}
 	}
-	sel := &ellipse{
-		w:      16,
-		h:      9,
-		colour: sdl.Colour{R: 0x00, G: 0xCC, B: 0x11, A: 0xFF},
+	if o.selection == nil {
+		o.selection = &ellipse{
+			w:      16,
+			h:      9,
+			colour: sdl.Colour{R: 0x00, G: 0xCC, B: 0x11, A: 0xFF},
+		}
 	}
-	return &orb{
-		orb:       o,
-		shadow:    shad,
-		selection: sel,
-	}, nil
 }
 
 func (o *orb) draw(r *sdl.Renderer) error {
-	if o.Invisible {
+	if o == nil || o.Invisible {
 		return nil
 	}
+	o.load()
 	r.PushOffset(o.X, o.Y+o.Z)
 	defer r.PopOffset()
 	if err := o.shadow.draw(r); err != nil {

@@ -24,4 +24,22 @@ var templateLibrary = map[string]*spriteTemplate{
 		frameWidth:  128,
 		frameHeight: 128,
 	},
+	"orb": {
+		sheetFile:   "assets/orb.png",
+		baseX:       15,
+		baseY:       31,
+		framesX:     1,
+		framesY:     1,
+		frameWidth:  32,
+		frameHeight: 32,
+	},
+	"orbShadow": {
+		sheetFile:   "assets/orbshadow.png",
+		baseX:       0,
+		baseY:       12,
+		framesX:     1,
+		framesY:     1,
+		frameWidth:  32,
+		frameHeight: 32,
+	},
 }
