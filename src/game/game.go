@@ -86,7 +86,7 @@ func NewGame(ctx *sdl.Context) (*Game, error) {
 		}
 	}
 
-	g.world.addChild(&orb{X: 150, Y: 0, Z: 100})
+	g.world.addChild(&orb{X: 150, Y: 22, Z: 100, Selected: true})
 
 	kmp("quit", g.inbox)
 	kmp("player.location", g.inbox)

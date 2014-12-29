@@ -31,14 +31,18 @@ type sprite struct {
 	tex      *sdl.Texture
 }
 
-func (s *sprite) draw(r *sdl.Renderer) error {
-	if s.Invisible {
-		return nil
-	}
+func (s *sprite) load() {
 	// Ensure the template & texture are loaded.
 	if s.template == nil {
 		s.template = templateLibrary[s.TemplateKey]
 	}
+}
+
+func (s *sprite) draw(r *sdl.Renderer) error {
+	if s.Invisible {
+		return nil
+	}
+	s.load()
 	if s.tex == nil {
 		tex, err := ctx().GetTexture(s.template.sheetFile)
 		if err != nil {

@@ -53,6 +53,7 @@ func (b *button) hitTest(x, y int) bool {
 		return x >= b.X && x <= b.X+b.template.frameWidth &&
 			y >= b.Y && y <= b.Y+b.template.frameHeight
 	}
+	b.load()
 	return !b.parent.Invisible &&
 		x >= b.X+b.parent.X &&
 		x <= b.X+b.parent.X+b.template.frameWidth &&

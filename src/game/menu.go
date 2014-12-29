@@ -13,8 +13,6 @@ var menus = []menuItem{
 	{
 		text: "Start game",
 		action: func() error {
-			// TODO: start a game
-			log.Print("start game button")
 			notify("menuAction", "start")
 			return nil
 		},
