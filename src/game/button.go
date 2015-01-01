@@ -46,14 +46,13 @@ func (b *button) draw(r *sdl.Renderer) error {
 
 // hitTest tests screen coordinates against the button bounds.
 func (b *button) hitTest(x, y int) bool {
-	if b == nil || b.Invisible {
+	if b == nil || b.sprite == nil || b.template == nil || b.Invisible {
 		return false
 	}
 	if b.parent == nil {
 		return x >= b.X && x <= b.X+b.template.frameWidth &&
 			y >= b.Y && y <= b.Y+b.template.frameHeight
 	}
-	b.load()
 	return !b.parent.Invisible &&
 		x >= b.X+b.parent.X &&
 		x <= b.X+b.parent.X+b.template.frameWidth &&

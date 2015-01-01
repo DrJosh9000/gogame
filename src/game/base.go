@@ -13,6 +13,10 @@ type destroyer interface {
 	destroy()
 }
 
+type loader interface {
+	load() error
+}
+
 type zer interface {
 	// z returns the Z order index. Lesser numbers are drawn before greater.
 	z() int
@@ -70,6 +74,17 @@ func (b *complexBase) destroy() {
 			d.destroy()
 		}
 	}
+}
+
+func (b *complexBase) load() error {
+	for _, c := range b.Kids {
+		if l, ok := c.(loader); ok {
+			if err := l.load(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (b *complexBase) z() int {

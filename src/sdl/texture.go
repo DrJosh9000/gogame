@@ -48,27 +48,3 @@ func (t *Texture) SetBlendMode(b BlendMode) error {
 	}
 	return nil
 }
-
-type TextureManager struct {
-	assets map[string]*Texture
-	r      *Renderer
-}
-
-func NewTextureManager(r *Renderer) *TextureManager {
-	return &TextureManager{
-		assets: make(map[string]*Texture),
-		r:      r,
-	}
-}
-
-func (a *TextureManager) GetTexture(name string) (*Texture, error) {
-	if t, ok := a.assets[name]; ok {
-		return t, nil
-	}
-	t, err := a.r.LoadImage(name)
-	if err != nil {
-		return nil, err
-	}
-	a.assets[name] = t
-	return t, nil
-}

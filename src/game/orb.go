@@ -14,7 +14,7 @@ type orb struct {
 	selection           *ellipse
 }
 
-func (o *orb) load() {
+func (o *orb) load() error {
 	if o.orb == nil {
 		o.orb = &sprite{TemplateKey: "orb"}
 		o.shadow = &sprite{TemplateKey: "orbShadow"}
@@ -25,13 +25,16 @@ func (o *orb) load() {
 		}
 		go o.life()
 	}
+	return nil
 }
 
 func (o *orb) draw(r *sdl.Renderer) error {
 	if o == nil || o.Invisible {
 		return nil
 	}
-	o.load()
+	if err := o.load(); err != nil {
+		return err
+	}
 	r.PushOffset(o.X, o.Z)
 	defer r.PopOffset()
 	y := o.Y + o.py
