@@ -1,8 +1,6 @@
 package game
 
 import (
-	"log"
-
 	"sdl"
 )
 
@@ -44,48 +42,17 @@ func (b *button) draw(r *sdl.Renderer) error {
 	return nil
 }
 
-// hitTest tests screen coordinates against the button bounds.
-func (b *button) hitTest(x, y int) bool {
-	if b == nil || b.sprite == nil || b.template == nil || b.Invisible {
-		return false
-	}
-	if b.parent == nil {
-		return x >= b.X && x <= b.X+b.template.frameWidth &&
-			y >= b.Y && y <= b.Y+b.template.frameHeight
-	}
-	return !b.parent.Invisible &&
-		x >= b.X+b.parent.X &&
-		x <= b.X+b.parent.X+b.template.frameWidth &&
-		y >= b.Y+b.parent.Y &&
-		y <= b.Y+b.parent.Y+b.template.frameHeight
+func (b *button) invisible() bool {
+	return b == nil || b.parent == nil || b.parent.invisible() || b.sprite.invisible()
 }
 
-func (b *button) life() {
-	inbox := make(chan message, 10)
-	kmp("quit", inbox)
-	kmp("input.event", inbox)
-	for msg := range inbox {
-		if msg.k == "quit" {
-			return
-		}
-		switch m := msg.v.(type) {
-		case *sdl.MouseButtonDownEvent:
-			if b.hitTest(m.X, m.Y) {
-				b.Frame = 1
-			}
-		case *sdl.MouseButtonUpEvent:
-			if b.hitTest(m.X, m.Y) {
-				if b.Frame == 1 {
-					if err := b.action(); err != nil {
-						log.Printf("error running menu item action: %v\n", err)
-					}
-				}
-				b.Frame = 0
-			}
-		case *sdl.MouseMotionEvent:
-			if !b.hitTest(m.X, m.Y) {
-				b.Frame = 0
-			}
-		}
+func (b *button) setDown(down bool) {
+	b.Frame = 0
+	if down {
+		b.Frame = 1
 	}
+}
+
+func (b *button) click() {
+	b.action()
 }

@@ -33,6 +33,13 @@ func (o *orb) load() error {
 	return nil
 }
 
+func (o *orb) bounds() sdl.Rect {
+	if o == nil || o.orb == nil {
+		return sdl.Rect{}
+	}
+	return o.orb.bounds()
+}
+
 func (o *orb) draw(r *sdl.Renderer) error {
 	if o == nil || o.Invisible {
 		return nil
@@ -66,6 +73,10 @@ func (o *orb) life() {
 			o.py = int(3.0 * math.Sin(3.0*d.Seconds()))
 		}
 	}
+}
+
+func (o *orb) invisible() bool {
+	return o == nil || o.orb.invisible()
 }
 
 func (o *orb) z() int {

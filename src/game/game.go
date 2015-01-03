@@ -36,6 +36,7 @@ type Game struct {
 	renderer   *sdl.Renderer
 	wv         *worldView
 	world, hud complexBase
+	windows    windowManager
 
 	cursor *sprite
 	menu   *menu
@@ -62,10 +63,10 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 		cursor: &sprite{TemplateKey: "cursor"},
 	}
 
-	// Attach cursor to events.
+	go gameInstance.windows.life()
 	go cursorLife(gameInstance.cursor)
 
-	menu, err := newMenu()
+	menu, err := newMenu(&gameInstance.windows)
 	if err != nil {
 		return nil, err
 	}
@@ -173,17 +174,12 @@ func (g *Game) Draw() error {
 	}
 	g.renderer.PopOffset()
 
-	// Draw the HUD in screen coordinates.
 	if err := g.hud.draw(g.renderer); err != nil {
 		return err
 	}
-
-	// Draw the menu in screen coordinates.
 	if err := g.menu.draw(g.renderer); err != nil {
 		return err
 	}
-
-	// Draw the cursor, always, in screen coordinates.
 	return g.cursor.draw(g.renderer)
 }
 

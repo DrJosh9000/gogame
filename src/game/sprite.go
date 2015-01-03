@@ -42,6 +42,10 @@ func (s *sprite) bounds() sdl.Rect {
 	return sdl.Rect{X: s.X, Y: s.Y + s.Z, W: s.template.frameWidth, H: s.template.frameHeight}
 }
 
+func (s *sprite) invisible() bool {
+	return s == nil || s.Invisible
+}
+
 func (s *sprite) load() error {
 	// Ensure the template & texture are loaded.
 	if s.template == nil {

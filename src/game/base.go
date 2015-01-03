@@ -5,8 +5,10 @@ import (
 	"sort"
 )
 
-type drawer interface {
-	draw(*sdl.Renderer) error
+type clicker interface {
+	object
+	click()
+	setDown(bool)
 }
 
 type destroyer interface {
@@ -17,14 +19,11 @@ type loader interface {
 	load() error
 }
 
-type zer interface {
-	// z returns the Z order index. Lesser numbers are drawn before greater.
-	z() int
-}
-
 type object interface {
-	drawer
-	zer
+	bounds() sdl.Rect
+	draw(*sdl.Renderer) error
+	invisible() bool
+	z() int
 }
 
 type objectSlice []object
@@ -74,6 +73,10 @@ func (b *complexBase) destroy() {
 			d.destroy()
 		}
 	}
+}
+
+func (b *complexBase) invisible() bool {
+	return b == nil || b.Invisible
 }
 
 func (b *complexBase) load() error {

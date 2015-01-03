@@ -39,26 +39,23 @@ type menu struct {
 	complexBase
 }
 
-func newMenu() (*menu, error) {
-	m := &menu{
-		complexBase: complexBase{
-			// TODO: Less magic numbers.
-			X: (1024 - 256) / 2,
-			Y: 200,
-		},
-	}
-	y := 0
+func newMenu(wm *windowManager) (*menu, error) {
+	m := &menu{}
+	x, y := (1024-256)/2, 200
 	for _, mi := range menus {
 		b := &button{
-			Label:  mi.text,
-			sprite: &sprite{TemplateKey: "button"},
+			Label: mi.text,
+			sprite: &sprite{
+				X:           x,
+				Y:           y,
+				TemplateKey: "button",
+			},
 			action: mi.action,
 			parent: m,
 		}
-		go b.life()
-		b.Y = y
 		y += 96
 		m.addChild(b)
+		wm.add(b)
 	}
 	return m, nil
 }
