@@ -1,15 +1,20 @@
 package game
 
 import (
+	"encoding/gob"
 	"math"
 	"sdl"
 	"time"
 )
 
+func init() {
+	gob.Register(&orb{})
+}
+
 type orb struct {
 	X, Y, Z             int
 	Selected, Invisible bool
-	py                  int
+	py                  int // "jiggle" amount
 	orb, shadow         *sprite
 	selection           *ellipse
 }
@@ -19,9 +24,9 @@ func (o *orb) load() error {
 		o.orb = &sprite{TemplateKey: "orb"}
 		o.shadow = &sprite{TemplateKey: "orbShadow"}
 		o.selection = &ellipse{
-			w:      20,
-			h:      12,
-			colour: sdl.Colour{R: 0x00, G: 0xAA, B: 0xEE, A: 0xFF},
+			W:      20,
+			H:      12,
+			Colour: sdl.Colour{R: 0x00, G: 0xAA, B: 0xEE, A: 0xFF},
 		}
 		go o.life()
 	}

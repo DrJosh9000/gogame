@@ -1,9 +1,14 @@
 package game
 
 import (
+	"encoding/gob"
 	"sdl"
 	"sync"
 )
+
+func init() {
+	gob.Register(&sprite{})
+}
 
 type spriteTemplate struct {
 	baseX, baseY            int // point within the sprite frame of the "centre"
@@ -28,6 +33,13 @@ type sprite struct {
 	X, Y, Z, Frame int
 
 	template *spriteTemplate
+}
+
+func (s *sprite) bounds() sdl.Rect {
+	if s == nil || s.template == nil {
+		return sdl.Rect{}
+	}
+	return sdl.Rect{X: s.X, Y: s.Y + s.Z, W: s.template.frameWidth, H: s.template.frameHeight}
 }
 
 func (s *sprite) load() error {

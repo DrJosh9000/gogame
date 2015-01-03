@@ -67,6 +67,10 @@ func (r *Rect) r() *C.SDL_Rect {
 	return &C.SDL_Rect{x: C.int(r.X), y: C.int(r.Y), w: C.int(r.W), h: C.int(r.H)}
 }
 
+func (r *Rect) Contains(x, y int) bool {
+	return r != nil && x >= r.X && x <= r.X+r.W && y >= r.Y && y <= r.Y+r.H
+}
+
 type Context struct {
 	*Window
 	*Renderer

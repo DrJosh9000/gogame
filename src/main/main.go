@@ -28,7 +28,7 @@ func main() {
 	defer ctx.Close()
 	r := ctx.Renderer
 
-	g, err := game.NewGame(ctx)
+	g, err := game.NewGame(ctx, defaultWidth, defaultHeight)
 	if err != nil {
 		panic(err)
 	}

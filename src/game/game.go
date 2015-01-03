@@ -2,8 +2,12 @@
 package game
 
 import (
+	"encoding/gob"
 	"fmt"
-	"math/rand"
+	//"math/rand"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -12,10 +16,6 @@ import (
 
 const (
 	clockDuration = 10 * time.Millisecond
-
-	level0File  = "assets/level0.txt"
-	level1AFile = "assets/level1a.txt"
-	level1BFile = "assets/level1b.txt"
 )
 
 type gameState int
@@ -32,7 +32,6 @@ type Game struct {
 	state gameState
 	ctx   *sdl.Context
 	clock *time.Ticker
-	inbox chan message
 
 	renderer   *sdl.Renderer
 	wv         *worldView
@@ -46,62 +45,48 @@ func ctx() *sdl.Context {
 	return gameInstance.ctx
 }
 
-func NewGame(ctx *sdl.Context) (*Game, error) {
+func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 	if gameInstance != nil {
 		return gameInstance, nil
 	}
 
-	g := &Game{
+	gameInstance = &Game{
 		state:    gameStateMenu,
 		ctx:      ctx,
 		clock:    time.NewTicker(clockDuration),
 		renderer: ctx.Renderer,
 		wv: &worldView{
-			view:  sdl.Rect{0, 0, 1024, 768},
+			view:  sdl.Rect{0, 0, width, height},
 			world: sdl.Rect{0, 0, 4096, 768}, // TODO: derive from terrain
 		},
-		inbox:  make(chan message, 10),
 		cursor: &sprite{TemplateKey: "cursor"},
 	}
-	gameInstance = g
 
 	// Attach cursor to events.
-	go cursorLife(g.cursor)
+	go cursorLife(gameInstance.cursor)
 
 	menu, err := newMenu()
 	if err != nil {
 		return nil, err
 	}
-	g.menu = menu
+	gameInstance.menu = menu
 
-	// Test hexagons...
-	for i := 0; i < 25; i++ {
-		for j := 0; j < 8; j++ {
-			g.world.addChild(&sprite{
-				TemplateKey: "hex",
-				X:           192*j + 96*(i%2) - 32,
-				Y:           -rand.Intn(5) * 2,
-				Z:           32 * (i - 1),
-			})
-		}
-	}
-
-	g.world.addChild(&orb{X: 150, Y: 22, Z: 100, Selected: true})
-
-	kmp("quit", g.inbox)
-	kmp("player.location", g.inbox)
-	kmp("input.event", g.inbox)
-	kmp("menuAction", g.inbox)
-	go g.life()
-	go g.pulse()
-	return g, nil
+	go gameInstance.life()
+	go gameInstance.pulse()
+	return gameInstance, nil
 }
 
+// life listens to and handles events.
 func (g *Game) life() {
+	inbox := make(chan message, 10)
+	kmp("quit", inbox)
+	kmp("player.location", inbox)
+	kmp("input.event", inbox)
+	kmp("menuAction", inbox)
 	defer func() {
 		g.state = gameStateQuitting
 	}()
-	for msg := range g.inbox {
+	for msg := range inbox {
 		//log.Printf("game.inbox got %+v\n", msg)
 		switch msg.k {
 		case "quit":
@@ -134,6 +119,39 @@ func (g *Game) life() {
 	}
 }
 
+// loadWorld loads g.world from a gob-encoded file.
+func (g *Game) loadWorld(worldFile string) error {
+	f, err := os.Open(worldFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	dec := gob.NewDecoder(f)
+	return dec.Decode(&g.world)
+}
+
+// saveWorld writes g.world to a temporary file, and then moves it
+// onto worldFile.
+func (g *Game) saveWorld(worldFile string) error {
+	f, err := ioutil.TempFile(filepath.Split(worldFile))
+	if err != nil {
+		return err
+	}
+	tmpFile := f.Name()
+	defer func() {
+		f.Close()
+		os.Remove(tmpFile)
+	}()
+	enc := gob.NewEncoder(f)
+	if err := enc.Encode(&g.world); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tmpFile, worldFile)
+}
+
 // pulse notifies the "clock" key with events from g.clock when the game is
 // playing.
 func (g *Game) pulse() {
@@ -145,6 +163,7 @@ func (g *Game) pulse() {
 	}
 }
 
+// Draw renders the game scene & any menus/HUD.
 func (g *Game) Draw() error {
 	// Draw everything in the world in world coordinates.
 	g.renderer.PushOffset(-g.wv.view.X, -g.wv.view.Y)
@@ -175,6 +194,7 @@ func (g *Game) Destroy() {
 	g.hud.destroy()
 }
 
+// Exec runs a command string. Commands are usually entered on the terminal.
 func (g *Game) Exec(cmd string) {
 	//log.Printf("game.Exec(%q)\n", cmd)
 	argv := strings.Split(cmd, " ")
@@ -187,6 +207,29 @@ func (g *Game) Exec(cmd string) {
 		} else {
 			fmt.Println("help: Not yet implemented")
 		}
+	case "load":
+		if len(argv) != 2 {
+			fmt.Println("load: Wrong number of arguments")
+		}
+		if err := g.loadWorld(argv[1]); err != nil {
+			fmt.Println("load:", err)
+			return
+		}
+		fmt.Println("load: Success")
+	case "save":
+		if len(argv) != 2 {
+			fmt.Println("save: Wrong number of arguments")
+		}
+		if err := g.saveWorld(argv[1]); err != nil {
+			fmt.Println("save:", err)
+			return
+		}
+		fmt.Println("save: Success")
+	case "testworld":
+		if len(argv) != 1 {
+			fmt.Println("instaworld: Wrong number of arguments")
+		}
+		g.testWorld()
 	case "":
 		return
 	default:
@@ -194,15 +237,25 @@ func (g *Game) Exec(cmd string) {
 	}
 }
 
+// testWorld replaces the world with a single screen full of hexes and an orb.
+func (g *Game) testWorld() {
+	g.world.Kids = nil
+	for i := 0; i < 25; i++ {
+		for j := 0; j < 8; j++ {
+			g.world.addChild(&sprite{
+				TemplateKey: "hex",
+				X:           192*j + 96*(i%2) - 32,
+				//Y:           -rand.Intn(5) * 2,
+				Z: 32 * (i - 1),
+			})
+		}
+	}
+	g.world.addChild(&orb{X: 150, Y: 22, Z: 100, Selected: true})
+}
+
 func (g *Game) Quitting() bool {
 	return g.state == gameStateQuitting
 }
-
-/*
-func (g *Game) level() *level {
-	return g.levels[g.lev.active]
-}
-*/
 
 func (g *Game) HandleEvent(ev sdl.Event) error {
 	notify("input.event", ev)
