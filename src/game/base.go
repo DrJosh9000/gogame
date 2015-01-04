@@ -26,9 +26,8 @@ type object interface {
 	z() int
 }
 
+// objectSlices are z-orderable.
 type objectSlice []object
-
-// The following implement sort.Interface.
 
 func (o objectSlice) Len() int           { return len(o) }
 func (o objectSlice) Less(i, j int) bool { return o[i].z() < o[j].z() }
@@ -97,15 +96,30 @@ func (b *complexBase) z() int {
 // unionObject is like a complex object, but only one subobject is ever drawn
 // (kind of like a C union - only one element is useful at a time).
 type unionObject struct {
-	complexBase
 	Active int
+	Kids   []object
+}
+
+func (u *unionObject) addChild(c object) {
+	u.Kids = append(u.Kids, c)
+}
+
+func (u *unionObject) children() objectSlice {
+	return objectSlice(u.Kids)
+}
+
+func (u *unionObject) bounds() sdl.Rect {
+	return u.Kids[u.Active].bounds()
 }
 
 func (u *unionObject) draw(r *sdl.Renderer) error {
-	if u.Invisible {
-		return nil
-	}
-	r.PushOffset(u.X, u.Y)
-	defer r.PopOffset()
 	return u.Kids[u.Active].draw(r)
+}
+
+func (u *unionObject) invisible() bool {
+	return u.Kids[u.Active].invisible()
+}
+
+func (u *unionObject) z() int {
+	return u.Kids[u.Active].z()
 }

@@ -1,7 +1,7 @@
 package game
 
 import (
-	"log"
+	"sdl"
 )
 
 type menuItem struct {
@@ -20,8 +20,6 @@ var menus = []menuItem{
 	{
 		text: "Level editor",
 		action: func() error {
-			// TODO: launch level editor
-			log.Print("level editor button")
 			notify("menuAction", "levelEdit")
 			return nil
 		},
@@ -44,7 +42,12 @@ func newMenu(wm *windowManager) (*menu, error) {
 	x, y := (1024-256)/2, 200
 	for _, mi := range menus {
 		b := &button{
-			Label: mi.text,
+			text: text{
+				Text:   mi.text,
+				Draw:   sdl.BlackColour,
+				Shadow: sdl.TransparentColour,
+				Align:  sdl.CentreAlign,
+			},
 			sprite: &sprite{
 				X:           x,
 				Y:           y,
@@ -52,6 +55,12 @@ func newMenu(wm *windowManager) (*menu, error) {
 			},
 			action: mi.action,
 			parent: m,
+		}
+		if err := b.load(); err != nil {
+			return nil, err
+		}
+		if err := b.text.load(); err != nil {
+			return nil, err
 		}
 		y += 96
 		m.addChild(b)

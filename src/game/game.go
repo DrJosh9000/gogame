@@ -226,6 +226,11 @@ func (g *Game) Exec(cmd string) {
 			fmt.Println("instaworld: Wrong number of arguments")
 		}
 		g.testWorld()
+	case "n", "notify":
+		if len(argv) != 3 {
+			fmt.Printf("notify: Wrong number of arguments [%d != 3]\n", len(argv))
+		}
+		notify(argv[1], argv[2])
 	case "":
 		return
 	default:
