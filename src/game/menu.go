@@ -9,7 +9,7 @@ type menuItem struct {
 	text   string
 }
 
-var menus = []menuItem{
+var mainMenu = []menuItem{
 	{
 		text: "Start game",
 		action: func() error {
@@ -37,7 +37,7 @@ type menu struct {
 	complexBase
 }
 
-func newMenu(wm *windowManager) (*menu, error) {
+func newMenu(menus []menuItem, wm *windowManager) (*menu, error) {
 	m := &menu{}
 	x, y := (1024-256)/2, 200
 	for _, mi := range menus {

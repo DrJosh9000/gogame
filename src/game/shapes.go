@@ -28,10 +28,8 @@ func (r *rect) bounds() sdl.Rect {
 
 func (r *rect) draw(ren *sdl.Renderer) error {
 	ren.SetDrawColour(r.Colour)
-	m1 := r.Rect
-	m1.X, m1.Y = m1.X+1, m1.Y+1
-	m1.W, m1.H = m1.W-2, m1.H-2
-	if err := ren.DrawRect(m1); err != nil {
+	// Make it 2 thick by drawing a second inset rect.
+	if err := ren.DrawRect(r.Rect.Inset(1, 1)); err != nil {
 		return err
 	}
 	return ren.DrawRect(r.Rect)

@@ -44,7 +44,7 @@ func (c *Colour) MapRGBA(s *C.SDL_Surface) C.Uint32 {
 	return C.SDL_MapRGBA(s.format, C.Uint8(c.R), C.Uint8(c.G), C.Uint8(c.B), C.Uint8(c.A))
 }
 
-var TransparentColour = Colour{0x00, 0x00, 0x00, 0x00}
+var TransparentColour = Colour{}
 var BlackColour = Colour{0x00, 0x00, 0x00, 0xff}
 var WhiteColour = Colour{0xff, 0xff, 0xff, 0xff}
 
@@ -69,6 +69,11 @@ func (r *Rect) r() *C.SDL_Rect {
 
 func (r Rect) Contains(x, y int) bool {
 	return x >= r.X && x <= r.X+r.W && y >= r.Y && y <= r.Y+r.H
+}
+
+// Inset returns a smaller rect inside the outside rect.
+func (r Rect) Inset(x, y int) Rect {
+	return Rect{X: r.X + x, Y: r.Y + y, W: r.W - 2*x, H: r.H - 2*y}
 }
 
 type Context struct {

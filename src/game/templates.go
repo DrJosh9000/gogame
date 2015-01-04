@@ -42,4 +42,18 @@ var templateLibrary = map[string]*spriteTemplate{
 		frameWidth:  32,
 		frameHeight: 32,
 	},
+	"twootEgg": {
+		sheetFile:   "assets/eggav.png",
+		framesX:     1,
+		framesY:     1,
+		frameWidth:  64,
+		frameHeight: 64,
+	},
+	"twootFrame": {
+		sheetFile:   "assets/blueframe.png",
+		framesX:     3,
+		framesY:     3,
+		frameWidth:  32,
+		frameHeight: 32,
+	},
 }

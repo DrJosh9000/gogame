@@ -66,11 +66,18 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 	go gameInstance.windows.life()
 	go cursorLife(gameInstance.cursor)
 
-	menu, err := newMenu(&gameInstance.windows)
+	menu, err := newMenu(mainMenu, &gameInstance.windows)
 	if err != nil {
 		return nil, err
 	}
 	gameInstance.menu = menu
+
+	gameInstance.hud.addChild(&twoot{
+		Avatar: &sprite{TemplateKey: "twootEgg"},
+		Bounds: sdl.Rect{X: 50, Y: 768 - 250, W: 1024 - 100, H: 200},
+		Text:   text{Text: "This is a twoot!", Draw: sdl.BlackColour},
+		Z:      2000,
+	})
 
 	go gameInstance.life()
 	go gameInstance.pulse()
