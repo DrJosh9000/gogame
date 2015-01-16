@@ -3,6 +3,7 @@ package game
 import (
 	"bufio"
 	"sdl"
+	"sort"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ var defaultFont *sdl.Font
 
 type text struct {
 	Text         string
-	X, Y, Z      int
+	W, X, Y, Z   int // Max width, left corner, Z order.
 	Invisible    bool
 	Draw, Shadow sdl.Colour
 	Align        sdl.Alignment
@@ -24,7 +25,7 @@ type text struct {
 	w, h int
 }
 
-// load will re-render the text. Useful for changing the text.
+// load will render the text. Useful for changing the text.
 func (t *text) load() error {
 	if defaultFont == nil {
 		f, err := sdl.LoadFont(defaultFontFile, defaultFontSize)
@@ -34,19 +35,43 @@ func (t *text) load() error {
 		defaultFont = f
 	}
 	var texts, shadows []*sdl.Surface
-	b := bufio.NewScanner(strings.NewReader(t.Text))
-	for b.Scan() {
-		surf, err := defaultFont.RenderSolid(b.Text(), t.Draw)
+	addLine := func(l string) error {
+		surf, err := defaultFont.RenderSolid(l, t.Draw)
 		if err != nil {
 			return err
 		}
 		texts = append(texts, surf)
 		if t.Shadow != sdl.TransparentColour {
-			surf, err := defaultFont.RenderSolid(b.Text(), t.Shadow)
+			surf, err := defaultFont.RenderSolid(l, t.Shadow)
 			if err != nil {
 				return err
 			}
 			shadows = append(shadows, surf)
+		}
+		return nil
+	}
+
+	b := bufio.NewScanner(strings.NewReader(t.Text))
+	for b.Scan() {
+		if t.W == 0 {
+			if err := addLine(b.Text()); err != nil {
+				return err
+			}
+			continue
+		}
+		words := strings.Split(b.Text(), " ")
+		for len(words) > 0 {
+			wc := sort.Search(len(words), func(i int) bool {
+				w, _, err := defaultFont.SizeText(strings.Join(words[:i+1], " "))
+				if err != nil {
+					return false
+				}
+				return w > t.W
+			})
+			if err := addLine(strings.Join(words[:wc], " ")); err != nil {
+				return err
+			}
+			words = words[wc:]
 		}
 	}
 	if err := b.Err(); err != nil {

@@ -78,6 +78,7 @@ func (t *twoot) load() error {
 
 	t.Avatar.X, t.Avatar.Y = 32, 32
 	t.Text.X, t.Text.Y = 112, 32
+	t.Text.W = t.Bounds.W - 112 - 32
 	return nil
 }
 

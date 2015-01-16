@@ -4,8 +4,8 @@ package game
 import (
 	"encoding/gob"
 	"fmt"
-	//"math/rand"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -73,9 +73,9 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 	gameInstance.menu = menu
 
 	gameInstance.hud.addChild(&twoot{
-		Avatar: &sprite{TemplateKey: "twootEgg"},
+		Avatar: &sprite{TemplateKey: "twootEgg", Frame: rand.Intn(8)},
 		Bounds: sdl.Rect{X: 512, Y: 20, W: 492, H: 128},
-		Text:   text{Text: "This is a twoot!", Draw: sdl.BlackColour},
+		Text:   text{Text: "A Gamergater (@theGGjamer)\nfart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart", Draw: sdl.BlackColour},
 		Z:      2000,
 	})
 

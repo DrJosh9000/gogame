@@ -51,3 +51,13 @@ func (f *Font) RenderSolid(text string, c Colour) (*Surface, error) {
 	}
 	return NewSurface(s), nil
 }
+
+func (f *Font) SizeText(text string) (w, h int, err error) {
+	cp := C.CString(text)
+	defer C.free(unsafe.Pointer(cp))
+	var cw, ch C.int
+	if errno := C.TTF_SizeText(f.f(), cp, &cw, &ch); errno != 0 {
+		err = Err()
+	}
+	return int(cw), int(ch), nil
+}
