@@ -24,6 +24,7 @@ type text struct {
 	w, h int
 }
 
+// load will re-render the text. Useful for changing the text.
 func (t *text) load() error {
 	if defaultFont == nil {
 		f, err := sdl.LoadFont(defaultFontFile, defaultFontSize)

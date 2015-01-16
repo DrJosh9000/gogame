@@ -74,7 +74,7 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 
 	gameInstance.hud.addChild(&twoot{
 		Avatar: &sprite{TemplateKey: "twootEgg"},
-		Bounds: sdl.Rect{X: 50, Y: 768 - 250, W: 1024 - 100, H: 200},
+		Bounds: sdl.Rect{X: 512, Y: 20, W: 492, H: 128},
 		Text:   text{Text: "This is a twoot!", Draw: sdl.BlackColour},
 		Z:      2000,
 	})
