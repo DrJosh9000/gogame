@@ -16,10 +16,11 @@ var defaultFont *sdl.Font
 
 type text struct {
 	Text         string
-	W, X, Y, Z   int // Max width, left corner, Z order.
+	X, Y, Z      int // Top left corner, Z order.
 	Invisible    bool
 	Draw, Shadow sdl.Colour
 	Align        sdl.Alignment
+	MaxWidth     int // At which wrapping occurs. 0 == no limit
 
 	tex  *sdl.Texture
 	w, h int
@@ -53,7 +54,7 @@ func (t *text) load() error {
 
 	b := bufio.NewScanner(strings.NewReader(t.Text))
 	for b.Scan() {
-		if t.W == 0 {
+		if t.MaxWidth <= 0 {
 			if err := addLine(b.Text()); err != nil {
 				return err
 			}
@@ -66,7 +67,7 @@ func (t *text) load() error {
 				if err != nil {
 					return false
 				}
-				return w > t.W
+				return w > t.MaxWidth
 			})
 			if err := addLine(strings.Join(words[:wc], " ")); err != nil {
 				return err

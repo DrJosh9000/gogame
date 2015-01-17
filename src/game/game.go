@@ -51,6 +51,7 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 		return gameInstance, nil
 	}
 
+	rand.Seed(time.Now().Unix())
 	gameInstance = &Game{
 		state:    gameStateMenu,
 		ctx:      ctx,
@@ -75,7 +76,7 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 	gameInstance.hud.addChild(&twoot{
 		Avatar: &sprite{TemplateKey: "twootEgg", Frame: rand.Intn(8)},
 		Bounds: sdl.Rect{X: 512, Y: 20, W: 492, H: 128},
-		Text:   text{Text: "A Gamergater (@theGGjamer)\nfart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart", Draw: sdl.BlackColour},
+		Text:   text{Text: "A JamerJater (@theJjamer)\nfart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart", Draw: sdl.BlackColour},
 		Z:      2000,
 	})
 

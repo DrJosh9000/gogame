@@ -46,6 +46,19 @@ func (t *twoot) load() error {
 	if t.frame != nil {
 		return nil
 	}
+
+	t.Avatar.X, t.Avatar.Y = 32, 32
+	t.Text.X, t.Text.Y = 112, 32
+	t.Text.MaxWidth = t.Bounds.W - 112 - 32
+	if err := t.Text.load(); err != nil {
+		return err
+	}
+
+	// Extend the height to neatly fit all text.
+	if h := 64 + t.Text.h; t.Bounds.H < h {
+		t.Bounds.H = h
+	}
+
 	t.frame = make([]sprite, 9)
 	for i := 0; i < 9; i++ {
 		t.frame[i] = sprite{
@@ -75,10 +88,6 @@ func (t *twoot) load() error {
 	t.frame[7].w = t.frame[1].w
 	t.frame[8].X = t.frame[2].X
 	t.frame[8].Y = t.frame[6].Y
-
-	t.Avatar.X, t.Avatar.Y = 32, 32
-	t.Text.X, t.Text.Y = 112, 32
-	t.Text.W = t.Bounds.W - 112 - 32
 	return nil
 }
 
