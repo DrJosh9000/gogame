@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math/rand"
 	"sdl"
 )
 
@@ -59,6 +60,7 @@ func (t *twoot) load() error {
 		t.Bounds.H = h
 	}
 
+	// Frame layout.
 	t.frame = make([]sprite, 9)
 	for i := 0; i < 9; i++ {
 		t.frame[i] = sprite{
@@ -97,4 +99,13 @@ func (t *twoot) invisible() bool {
 
 func (t *twoot) z() int {
 	return t.Z
+}
+
+func easyTwoot(s string) *twoot {
+	return &twoot{
+		Avatar: &sprite{TemplateKey: "twootEgg", Frame: rand.Intn(8)},
+		Bounds: sdl.Rect{X: 512, Y: 20, W: 492, H: 128},
+		Text:   text{Text: s, Draw: sdl.BlackColour},
+		Z:      2000,
+	}
 }

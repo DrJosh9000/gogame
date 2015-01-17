@@ -73,13 +73,6 @@ func NewGame(ctx *sdl.Context, width, height int) (*Game, error) {
 	}
 	gameInstance.menu = menu
 
-	gameInstance.hud.addChild(&twoot{
-		Avatar: &sprite{TemplateKey: "twootEgg", Frame: rand.Intn(8)},
-		Bounds: sdl.Rect{X: 512, Y: 20, W: 492, H: 128},
-		Text:   text{Text: "A JamerJater (@theJjamer)\nfart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart fart", Draw: sdl.BlackColour},
-		Z:      2000,
-	})
-
 	go gameInstance.life()
 	go gameInstance.pulse()
 	return gameInstance, nil
@@ -239,6 +232,8 @@ func (g *Game) Exec(cmd string) {
 			fmt.Printf("notify: Wrong number of arguments [%d != 3]\n", len(argv))
 		}
 		notify(argv[1], argv[2])
+	case "t", "twoot":
+		g.hud.addChild(easyTwoot(strings.Join(argv[1:], " ")))
 	case "":
 		return
 	default:
