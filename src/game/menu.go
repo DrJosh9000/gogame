@@ -1,9 +1,5 @@
 package game
 
-import (
-	"sdl"
-)
-
 type menuItem struct {
 	action func() error
 	text   string
@@ -39,27 +35,18 @@ type menu struct {
 
 func newMenu(menus []menuItem, wm *windowManager) (*menu, error) {
 	m := &menu{}
-	x, y := (1024-256)/2, 200
+	w := 384
+	x, y := (1024-w)/2, 200
 	for _, mi := range menus {
 		b := &button{
-			text: text{
-				Text:   mi.text,
-				Draw:   sdl.BlackColour,
-				Shadow: sdl.TransparentColour,
-				Align:  sdl.CentreAlign,
-			},
-			sprite: &sprite{
-				X:           x,
-				Y:           y,
-				TemplateKey: "button",
-			},
-			action: mi.action,
+			Label:  mi.text,
+			W:      w,
+			X:      x,
+			Y:      y,
+			Action: mi.action,
 			parent: m,
 		}
 		if err := b.load(); err != nil {
-			return nil, err
-		}
-		if err := b.text.load(); err != nil {
 			return nil, err
 		}
 		y += 96

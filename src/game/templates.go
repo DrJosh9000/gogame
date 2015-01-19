@@ -3,9 +3,9 @@ package game
 var templateLibrary = map[string]*spriteTemplate{
 	"button": {
 		sheetFile:   "assets/button.png",
-		framesX:     1,
-		framesY:     2,
-		frameWidth:  256,
+		framesX:     6,
+		framesY:     1,
+		frameWidth:  20,
 		frameHeight: 64,
 	},
 	"cursor": {
